@@ -6,7 +6,7 @@ import argparse
 import json
 import re
 from collections.abc import Iterable, Sequence
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -40,6 +40,8 @@ FORBIDDEN_DATA_KEYS = {
     "worksheet",
 }
 MAX_DATA_BYTES = 512_000
+MAX_FUTURE_SKEW = timedelta(minutes=10)
+SOURCE_TIMEZONE = timezone(timedelta(hours=3))
 
 
 class SiteValidationError(RuntimeError):
@@ -60,7 +62,17 @@ def _is_optional_integer(value: Any) -> bool:
     return value is None or (isinstance(value, int) and not isinstance(value, bool))
 
 
-def validate_payload(payload: dict[str, Any]) -> None:
+def validate_payload(
+    payload: dict[str, Any],
+    *,
+    now: datetime | None = None,
+) -> None:
+    checked_at = now or datetime.now(timezone.utc)
+    if checked_at.tzinfo is None:
+        checked_at = checked_at.replace(tzinfo=timezone.utc)
+    checked_at = checked_at.astimezone(timezone.utc)
+    latest_allowed_at = checked_at + MAX_FUTURE_SKEW
+    latest_allowed_day = latest_allowed_at.astimezone(SOURCE_TIMEZONE).date()
     if set(payload) != TOP_LEVEL_KEYS:
         raise SiteValidationError("Dashboard payload top-level keys changed")
     if payload.get("schemaVersion") != 1:
@@ -73,6 +85,8 @@ def validate_payload(payload: dict[str, Any]) -> None:
         raise SiteValidationError("Dashboard generation timestamp is invalid") from error
     if generated_at.tzinfo is None:
         raise SiteValidationError("Dashboard generation timestamp must include a timezone")
+    if generated_at.astimezone(timezone.utc) > latest_allowed_at:
+        raise SiteValidationError("Dashboard generation timestamp is in the future")
     if payload.get("timezoneLabel") != "Europe/Moscow (UTC+3)":
         raise SiteValidationError("Dashboard timezone contract changed")
     if payload.get("currency") != "$":
@@ -109,6 +123,8 @@ def validate_payload(payload: dict[str, Any]) -> None:
                 raise SiteValidationError("Dashboard source timestamp is invalid") from error
             if parsed_observation.tzinfo is None:
                 raise SiteValidationError("Dashboard source timestamp must include a timezone")
+            if parsed_observation.astimezone(timezone.utc) > latest_allowed_at:
+                raise SiteValidationError("Dashboard source timestamp is in the future")
 
     days = payload.get("days")
     if not isinstance(days, list) or len(days) > 366:
@@ -121,9 +137,11 @@ def validate_payload(payload: dict[str, Any]) -> None:
         if not isinstance(date_value, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date_value):
             raise SiteValidationError("Dashboard day date is invalid")
         try:
-            date.fromisoformat(date_value)
+            parsed_day = date.fromisoformat(date_value)
         except ValueError as error:
             raise SiteValidationError("Dashboard day date is invalid") from error
+        if parsed_day > latest_allowed_day:
+            raise SiteValidationError("Dashboard day date is in the future")
         if previous_date and date_value <= previous_date:
             raise SiteValidationError("Dashboard day history must be strictly ascending")
         previous_date = date_value
