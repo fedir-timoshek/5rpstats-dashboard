@@ -1,0 +1,64 @@
+{
+  "businesses": [
+    {
+      "id": "gas",
+      "label": "АЗС №6"
+    },
+    {
+      "id": "barbershop",
+      "label": "Барбершоп №5"
+    }
+  ],
+  "currency": "$",
+  "days": [
+    {
+      "date": "2026-09-01",
+      "isPartial": false,
+      "online": {
+        "max": 4080,
+        "min": 3527,
+        "samples": 5
+      },
+      "profitSamples": {
+        "barbershop": 0,
+        "gas": 4
+      },
+      "profits": {
+        "barbershop": null,
+        "gas": 166189
+      }
+    },
+    {
+      "date": "2026-09-02",
+      "isPartial": true,
+      "online": {
+        "max": 3013,
+        "min": 1575,
+        "samples": 5
+      },
+      "profitSamples": {
+        "barbershop": 0,
+        "gas": 4
+      },
+      "profits": {
+        "barbershop": null,
+        "gas": 23098
+      }
+    }
+  ],
+  "generatedAt": "2026-09-02T01:12:49.359518Z",
+  "schemaVersion": 1,
+  "sourceStatus": {
+    "barbershop": {
+      "lastObservedAt": "2026-09-02T00:10:21Z",
+      "observations": 1,
+      "profitSamples": 0
+    },
+    "gas": {
+      "lastObservedAt": "2026-09-02T00:08:27Z",
+      "observations": 9,
+      "profitSamples": 8
+    }
+  },
+  "timezoneLabel": "Europe/Moscow (UTC+3)"
+}

@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0a0c10">
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'"
+    >
+    <meta
+      name="description"
+      content="Дневная прибыль АЗС №6 и Барбершопа №5, а также дневной диапазон онлайна сервера Chiliad."
+    >
+    <title>Chiliad Business Pulse</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="./styles.css?v=20260902">
+    <script src="./app.js?v=20260902" defer></script>
+  </head>
+  <body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="Chiliad Business Pulse — главная">
+        <span class="brand-mark" aria-hidden="true">C</span>
+        <span>
+          <span class="eyebrow">GTA5RP · Chiliad</span>
+          <strong>Business Pulse</strong>
+        </span>
+      </a>
+      <div class="cloud-badge" id="cloud-badge" role="status" aria-live="polite">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="cloud-status">Загрузка данных</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">Бизнесы и сервер — одним взглядом</p>
+          <h1 id="page-title">Динамика Chiliad без лишнего шума</h1>
+          <p class="hero-copy">
+            Дневная прибыль двух бизнесов и реальный диапазон онлайна.
+            Текущий день обновляется по мере появления новых часовых снимков.
+          </p>
+        </div>
+        <div class="updated-panel">
+          <span>Последнее обновление</span>
+          <strong id="updated-at">—</strong>
+          <small id="timezone-label">Дни: Europe/Moscow (UTC+3)</small>
+        </div>
+      </section>
+
+      <section class="metrics" aria-label="Текущие показатели">
+        <article class="metric-card metric-gas">
+          <span class="metric-label"><i aria-hidden="true"></i>АЗС №6</span>
+          <strong id="gas-profit">—</strong>
+          <small>прибыль за текущий день</small>
+        </article>
+        <article class="metric-card metric-barbershop">
+          <span class="metric-label"><i aria-hidden="true"></i>Барбершоп №5</span>
+          <strong id="barbershop-profit">—</strong>
+          <small>прибыль за текущий день</small>
+        </article>
+        <article class="metric-card metric-online">
+          <span class="metric-label"><i aria-hidden="true"></i>Online Chiliad</span>
+          <strong id="online-range">—</strong>
+          <small>минимум — максимум сегодня</small>
+        </article>
+        <article class="metric-card metric-coverage">
+          <span class="metric-label"><i aria-hidden="true"></i>История</span>
+          <strong id="coverage-days">—</strong>
+          <small>дней в текущем окне</small>
+        </article>
+      </section>
+
+      <section id="global-message" class="global-message" hidden aria-live="polite"></section>
+
+      <section class="chart-grid" aria-label="Графики">
+        <article class="chart-card">
+          <header class="chart-header">
+            <div>
+              <p class="eyebrow">Финансовый ритм</p>
+              <h2>Дневная прибыль бизнесов</h2>
+              <p>Сумма почасовых изменений NET за каждый календарный день.</p>
+            </div>
+            <div class="legend" aria-label="Легенда прибыли">
+              <span><i class="legend-gas" aria-hidden="true"></i>АЗС №6</span>
+              <span><i class="legend-barbershop" aria-hidden="true"></i>Барбершоп №5</span>
+            </div>
+          </header>
+          <div class="chart-shell" id="profit-chart" aria-busy="true">
+            <div class="chart-skeleton" aria-hidden="true"></div>
+          </div>
+          <p class="chart-note">Полупрозрачные столбцы — текущий неполный день.</p>
+          <details class="data-details">
+            <summary>Показать данные прибыли таблицей</summary>
+            <div class="table-scroll"><table id="profit-table"></table></div>
+          </details>
+        </article>
+
+        <article class="chart-card">
+          <header class="chart-header">
+            <div>
+              <p class="eyebrow">Нагрузка сервера</p>
+              <h2>Дневной диапазон онлайна</h2>
+              <p>Минимальное и максимальное число игроков в наблюдениях за день.</p>
+            </div>
+            <div class="legend" aria-label="Легенда онлайна">
+              <span><i class="legend-online-max" aria-hidden="true"></i>Максимум</span>
+              <span><i class="legend-online-min" aria-hidden="true"></i>Минимум</span>
+            </div>
+          </header>
+          <div class="chart-shell" id="online-chart" aria-busy="true">
+            <div class="chart-skeleton" aria-hidden="true"></div>
+          </div>
+          <p class="chart-note">Диапазон объединяет наблюдения обоих бизнесов на Chiliad.</p>
+          <details class="data-details">
+            <summary>Показать online таблицей</summary>
+            <div class="table-scroll"><table id="online-table"></table></div>
+          </details>
+        </article>
+      </section>
+    </main>
+
+    <footer>
+      <p>Обновление и публикация выполняются GitHub Actions. Mac и локальные процессы не участвуют.</p>
+      <p>Публикуются только дневные агрегаты — без логинов, балансов, кассы, склада и сырых строк.</p>
+    </footer>
+  </body>
+</html>
