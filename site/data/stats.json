@@ -51,11 +51,11 @@
       "online": {
         "max": 2484,
         "min": 1351,
-        "samples": 4
+        "samples": 6
       },
       "profitSamples": {
-        "barbershop": 2,
-        "gas": 2
+        "barbershop": 3,
+        "gas": 3
       },
       "profits": {
         "barbershop": 48052,
@@ -63,18 +63,18 @@
       }
     }
   ],
-  "generatedAt": "2026-09-03T00:19:20.805037Z",
+  "generatedAt": "2026-09-03T00:44:46.173040Z",
   "schemaVersion": 1,
   "sourceStatus": {
     "barbershop": {
-      "lastObservedAt": "2026-09-03T00:19:09Z",
-      "observations": 5,
-      "profitSamples": 4
+      "lastObservedAt": "2026-09-03T00:44:32Z",
+      "observations": 6,
+      "profitSamples": 5
     },
     "gas": {
-      "lastObservedAt": "2026-09-03T00:19:09Z",
-      "observations": 13,
-      "profitSamples": 12
+      "lastObservedAt": "2026-09-03T00:44:32Z",
+      "observations": 14,
+      "profitSamples": 13
     }
   },
   "timezoneLabel": "Europe/Moscow (UTC+3)"
