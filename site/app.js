@@ -29,6 +29,13 @@
       label: "Барбершоп №5",
       color: "#5de0c3",
     },
+    {
+      key: "store13",
+      containerId: "store-profit-chart",
+      tableId: "store-profit-table",
+      label: "Магазин 24/7 №13",
+      color: "#ff8eb5",
+    },
   ];
   const timestampFormatter = new Intl.DateTimeFormat("ru-RU", {
     day: "2-digit",
@@ -58,7 +65,7 @@
   }
 
   function validatePayload(payload) {
-    if (!payload || payload.schemaVersion !== 1 || !Array.isArray(payload.days)) {
+    if (!payload || payload.schemaVersion !== 2 || !Array.isArray(payload.days)) {
       throw new Error("Формат облачных данных не поддерживается");
     }
     for (const day of payload.days) {
@@ -110,6 +117,11 @@
       "barbershop-profit",
       latest ? formatMoney(latest.profits.barbershop) : "—",
       !latest || !Number.isFinite(latest.profits.barbershop),
+    );
+    metricValue(
+      "store-profit",
+      latest ? formatMoney(latest.profits.store13) : "—",
+      !latest || !Number.isFinite(latest.profits.store13),
     );
     const onlineAvailable = latest && Number.isFinite(latest.online.min) && Number.isFinite(latest.online.max);
     metricValue(
@@ -393,7 +405,7 @@
     const sourceTimes = Object.values(payload.sourceStatus || {})
       .map((status) => new Date(status?.lastObservedAt).getTime());
     const sourcesStale =
-      sourceTimes.length !== 2 ||
+      sourceTimes.length !== PROFIT_SERIES.length ||
       sourceTimes.some((timestamp) => !Number.isFinite(timestamp) || Date.now() - timestamp > STALE_AFTER_MS);
     const stale = !Number.isFinite(buildAge) || buildAge > STALE_AFTER_MS || sourcesStale;
     byId("updated-at").textContent = Number.isNaN(generatedAt.getTime())
@@ -403,7 +415,7 @@
     setCloudState(stale ? "stale" : "fresh", stale ? "Данные задерживаются" : "GitHub cloud · актуально");
     setMessage(
       stale
-        ? "Публикация или один из двух источников старше 2,5 часов. Графики сохранены, а GitHub health-check проверяет collector runs."
+        ? "Публикация или один из трёх источников старше 2,5 часов. Графики сохранены, а GitHub health-check проверяет collector runs."
         : "",
     );
     renderMetrics(payload);

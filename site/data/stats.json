@@ -7,6 +7,10 @@
     {
       "id": "barbershop",
       "label": "Барбершоп №5"
+    },
+    {
+      "id": "store13",
+      "label": "Магазин 24/7 №13"
     }
   ],
   "currency": "$",
@@ -21,11 +25,13 @@
       },
       "profitSamples": {
         "barbershop": 0,
-        "gas": 4
+        "gas": 4,
+        "store13": 0
       },
       "profits": {
         "barbershop": null,
-        "gas": 166189
+        "gas": 166189,
+        "store13": null
       }
     },
     {
@@ -38,43 +44,52 @@
       },
       "profitSamples": {
         "barbershop": 2,
-        "gas": 6
+        "gas": 6,
+        "store13": 0
       },
       "profits": {
         "barbershop": 110952,
-        "gas": 322264
+        "gas": 322264,
+        "store13": null
       }
     },
     {
       "date": "2026-09-03",
       "isPartial": true,
       "online": {
-        "max": 2484,
+        "max": 3012,
         "min": 1351,
-        "samples": 10
+        "samples": 13
       },
       "profitSamples": {
-        "barbershop": 5,
-        "gas": 5
+        "barbershop": 6,
+        "gas": 6,
+        "store13": 0
       },
       "profits": {
-        "barbershop": 62196,
-        "gas": 137576
+        "barbershop": 96633,
+        "gas": 216845,
+        "store13": null
       }
     }
   ],
-  "generatedAt": "2026-09-03T08:56:33.256860Z",
-  "schemaVersion": 1,
+  "generatedAt": "2026-09-03T13:00:39.373111Z",
+  "schemaVersion": 2,
   "sourceStatus": {
     "barbershop": {
-      "lastObservedAt": "2026-09-03T08:56:13Z",
-      "observations": 8,
-      "profitSamples": 7
+      "lastObservedAt": "2026-09-03T13:00:20Z",
+      "observations": 9,
+      "profitSamples": 8
     },
     "gas": {
-      "lastObservedAt": "2026-09-03T08:56:08Z",
-      "observations": 16,
-      "profitSamples": 15
+      "lastObservedAt": "2026-09-03T13:00:15Z",
+      "observations": 17,
+      "profitSamples": 16
+    },
+    "store13": {
+      "lastObservedAt": "2026-09-03T13:00:25Z",
+      "observations": 1,
+      "profitSamples": 0
     }
   },
   "timezoneLabel": "Europe/Moscow (UTC+3)"

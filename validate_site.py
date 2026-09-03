@@ -21,8 +21,13 @@ TOP_LEVEL_KEYS = {
     "days",
 }
 DAY_KEYS = {"date", "isPartial", "profits", "profitSamples", "online"}
-BUSINESS_IDS = {"gas", "barbershop"}
-BUSINESS_LABELS = {"gas": "АЗС №6", "barbershop": "Барбершоп №5"}
+BUSINESS_ORDER = ("gas", "barbershop", "store13")
+BUSINESS_IDS = frozenset(BUSINESS_ORDER)
+BUSINESS_LABELS = {
+    "gas": "АЗС №6",
+    "barbershop": "Барбершоп №5",
+    "store13": "Магазин 24/7 №13",
+}
 FORBIDDEN_DATA_KEYS = {
     "account",
     "account_balance",
@@ -79,7 +84,7 @@ def validate_payload(
     latest_allowed_day = latest_allowed_at.astimezone(SOURCE_TIMEZONE).date()
     if set(payload) != TOP_LEVEL_KEYS:
         raise SiteValidationError("Dashboard payload top-level keys changed")
-    if not _is_integer(payload.get("schemaVersion")) or payload["schemaVersion"] != 1:
+    if not _is_integer(payload.get("schemaVersion")) or payload["schemaVersion"] != 2:
         raise SiteValidationError("Dashboard payload schema version changed")
     try:
         generated_at = datetime.fromisoformat(
@@ -98,8 +103,8 @@ def validate_payload(
 
     businesses = payload.get("businesses")
     expected_businesses = [
-        {"id": "gas", "label": BUSINESS_LABELS["gas"]},
-        {"id": "barbershop", "label": BUSINESS_LABELS["barbershop"]},
+        {"id": business_id, "label": BUSINESS_LABELS[business_id]}
+        for business_id in BUSINESS_ORDER
     ]
     if businesses != expected_businesses:
         raise SiteValidationError("Dashboard business allowlist changed")
@@ -232,10 +237,11 @@ def validate_site(site_directory: Path) -> dict[str, int]:
         '<main>',
         'id="gas-profit-chart"',
         'id="barbershop-profit-chart"',
+        'id="store-profit-chart"',
         'id="online-chart"',
         'id="global-message"',
-        '<link rel="stylesheet" href="./styles.css?v=20260903">',
-        '<script src="./app.js?v=20260903" defer></script>',
+        '<link rel="stylesheet" href="./styles.css?v=20260904">',
+        '<script src="./app.js?v=20260904" defer></script>',
     )
     if any(fragment not in html for fragment in required_html_fragments):
         raise SiteValidationError("Pages HTML accessibility or security contract changed")

@@ -1,6 +1,6 @@
 # Chiliad Business Pulse
 
-Static, privacy-reduced dashboard for two GTA5RP Chiliad businesses. The live
+Static, privacy-reduced dashboard for three GTA5RP Chiliad businesses. The live
 site is <https://fedir-timoshek.github.io/5rpstats-dashboard/>.
 
 This repository is intentionally public so GitHub Pages remains available on
@@ -9,7 +9,7 @@ spreadsheet identifier, deploy key, cookies, storage state, raw worksheet rows,
 account balance, cashbox, or warehouse stock.
 
 The private `fedir-timoshek/5rpstats` repository's single combined hourly job
-collects both isolated accounts, derives the aggregate, validates the public
+collects three isolated accounts, derives the aggregate, validates the public
 boundary, and pushes through a write deploy key scoped only to this repository.
 Its manual publisher workflow is recovery-only. Neither publication path
 copies private generator configuration or credentials here.
@@ -33,17 +33,18 @@ source response.
 The private generator derives aggregates from:
 
 - `Chiliad - азс 6`;
-- `Chiliad - барбершоп 5`.
+- `Chiliad - барбершоп 5`;
+- `Chiliad - магазин 13`.
 
 It publishes only:
 
-- daily summed `NET` for АЗС №6 and Барбершоп №5;
+- daily summed `NET` for АЗС №6, Барбершоп №5, and Магазин 24/7 №13;
 - daily minimum and maximum Chiliad online;
 - aggregate sample counts and bounded source/generated timestamps.
 
 The site uses static HTML, CSS, vanilla JavaScript, and accessible SVG charts.
 Its visual direction is a calm dark operations dashboard with tabular numerals,
-responsive spacing, warm amber/mint business accents, and a violet/sky online
+responsive spacing, warm amber/mint/coral business accents, and a violet/sky online
 range. It provides loading, populated, empty, error, and stale states and honors
 reduced-motion preferences. There is no framework runtime, live Sheets fetch,
 third-party font, visitor analytics, or client-side secret.
