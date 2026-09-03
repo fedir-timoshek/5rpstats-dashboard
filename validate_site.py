@@ -58,8 +58,12 @@ def _walk_keys(value: Any) -> Iterable[str]:
             yield from _walk_keys(child)
 
 
+def _is_integer(value: Any) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
 def _is_optional_integer(value: Any) -> bool:
-    return value is None or (isinstance(value, int) and not isinstance(value, bool))
+    return value is None or _is_integer(value)
 
 
 def validate_payload(
@@ -75,7 +79,7 @@ def validate_payload(
     latest_allowed_day = latest_allowed_at.astimezone(SOURCE_TIMEZONE).date()
     if set(payload) != TOP_LEVEL_KEYS:
         raise SiteValidationError("Dashboard payload top-level keys changed")
-    if payload.get("schemaVersion") != 1:
+    if not _is_integer(payload.get("schemaVersion")) or payload["schemaVersion"] != 1:
         raise SiteValidationError("Dashboard payload schema version changed")
     try:
         generated_at = datetime.fromisoformat(
@@ -111,7 +115,7 @@ def validate_payload(
         }:
             raise SiteValidationError("Dashboard source status keys changed")
         for count_key in ("observations", "profitSamples"):
-            if not isinstance(status[count_key], int) or status[count_key] < 0:
+            if not _is_integer(status[count_key]) or status[count_key] < 0:
                 raise SiteValidationError("Dashboard source counts are invalid")
         last_observed_at = status["lastObservedAt"]
         if last_observed_at is not None:
@@ -161,13 +165,13 @@ def validate_payload(
             raise SiteValidationError("Dashboard profit value exceeds the safe bound")
         if not isinstance(profit_samples, dict) or set(profit_samples) != BUSINESS_IDS:
             raise SiteValidationError("Dashboard profit sample series changed")
-        if not all(isinstance(value, int) and value >= 0 for value in profit_samples.values()):
+        if not all(_is_integer(value) and value >= 0 for value in profit_samples.values()):
             raise SiteValidationError("Dashboard profit sample counts are invalid")
         if not isinstance(online, dict) or set(online) != {"min", "max", "samples"}:
             raise SiteValidationError("Dashboard online series changed")
         if not _is_optional_integer(online["min"]) or not _is_optional_integer(online["max"]):
             raise SiteValidationError("Dashboard online range is invalid")
-        if not isinstance(online["samples"], int) or online["samples"] < 0:
+        if not _is_integer(online["samples"]) or online["samples"] < 0:
             raise SiteValidationError("Dashboard online sample count is invalid")
         if (
             online["min"] is not None
@@ -226,11 +230,12 @@ def validate_site(site_directory: Path) -> dict[str, int]:
         'name="viewport"',
         "Content-Security-Policy",
         '<main>',
-        'id="profit-chart"',
+        'id="gas-profit-chart"',
+        'id="barbershop-profit-chart"',
         'id="online-chart"',
         'id="global-message"',
-        '<link rel="stylesheet" href="./styles.css?v=20260902">',
-        '<script src="./app.js?v=20260902" defer></script>',
+        '<link rel="stylesheet" href="./styles.css?v=20260903">',
+        '<script src="./app.js?v=20260903" defer></script>',
     )
     if any(fragment not in html for fragment in required_html_fragments):
         raise SiteValidationError("Pages HTML accessibility or security contract changed")

@@ -14,6 +14,22 @@
     month: "short",
     timeZone: "Europe/Moscow",
   });
+  const PROFIT_SERIES = [
+    {
+      key: "gas",
+      containerId: "gas-profit-chart",
+      tableId: "gas-profit-table",
+      label: "АЗС №6",
+      color: "#ff9e45",
+    },
+    {
+      key: "barbershop",
+      containerId: "barbershop-profit-chart",
+      tableId: "barbershop-profit-table",
+      label: "Барбершоп №5",
+      color: "#5de0c3",
+    },
+  ];
   const timestampFormatter = new Intl.DateTimeFormat("ru-RU", {
     day: "2-digit",
     month: "short",
@@ -78,7 +94,13 @@
   }
 
   function renderMetrics(payload) {
-    const latest = payload.days.findLast((day) => day.isPartial) || null;
+    let latest = null;
+    for (let index = payload.days.length - 1; index >= 0; index -= 1) {
+      if (payload.days[index].isPartial) {
+        latest = payload.days[index];
+        break;
+      }
+    }
     metricValue(
       "gas-profit",
       latest ? formatMoney(latest.profits.gas) : "—",
@@ -187,11 +209,11 @@
     container.setAttribute("aria-busy", "false");
   }
 
-  function renderProfitChart(days) {
-    const container = byId("profit-chart");
-    const values = days.flatMap((day) => [day.profits.gas, day.profits.barbershop]);
+  function renderProfitChart(days, series) {
+    const container = byId(series.containerId);
+    const values = days.map((day) => day.profits[series.key]);
     if (!values.some(Number.isFinite)) {
-      renderEmpty(container, "Прибыль появится после второго успешного снимка бизнеса.");
+      renderEmpty(container, `${series.label}: прибыль появится после второго успешного снимка бизнеса.`);
       return;
     }
     const dimensions = chartDimensions(container);
@@ -201,13 +223,13 @@
     const [domainMin, domainMax] = niceDomain(values, true);
     const yScale = linearScale(domainMin, domainMax, plotBottom, margin.top);
     const groupWidth = plotWidth / Math.max(days.length, 1);
-    const barWidth = Math.max(4, Math.min(26, groupWidth * 0.28));
+    const barWidth = Math.max(5, Math.min(38, groupWidth * 0.56));
     const xForIndex = (index) => margin.left + groupWidth * index + groupWidth / 2;
     const zeroY = yScale(0);
     const svg = svgElement("svg", {
       viewBox: `0 0 ${width} ${height}`,
       role: "img",
-      "aria-label": "Столбчатый график дневной прибыли АЗС №6 и Барбершопа №5",
+      "aria-label": `Столбчатый график дневной прибыли ${series.label}`,
     });
     addGrid(svg, dimensions, [domainMin, domainMax], yScale, (value) => compactFormatter.format(value));
     svg.appendChild(svgElement("line", {
@@ -218,31 +240,27 @@
       class: "chart-zero-line",
     }));
 
-    const series = [
-      { key: "gas", color: "#ff9e45", offset: -barWidth * 0.62, label: "АЗС №6" },
-      { key: "barbershop", color: "#5de0c3", offset: barWidth * 0.62, label: "Барбершоп №5" },
-    ];
     days.forEach((day, index) => {
-      series.forEach((entry) => {
-        const value = day.profits[entry.key];
-        if (!Number.isFinite(value)) return;
-        const valueY = yScale(value);
-        const rect = svgElement("rect", {
-          x: xForIndex(index) + entry.offset - barWidth / 2,
-          y: Math.min(valueY, zeroY),
-          width: barWidth,
-          height: Math.max(2, Math.abs(zeroY - valueY)),
-          rx: Math.min(5, barWidth / 3),
-          fill: entry.color,
-          opacity: day.isPartial ? 0.7 : 0.9,
-          class: "profit-bar",
-          tabindex: "0",
-        });
-        const title = svgElement("title");
-        title.textContent = `${entry.label}, ${formatDate(day.date)}: ${formatMoney(value)}${day.isPartial ? ", день ещё не завершён" : ""}`;
-        rect.appendChild(title);
-        svg.appendChild(rect);
+      const value = day.profits[series.key];
+      if (!Number.isFinite(value)) return;
+      const valueY = yScale(value);
+      const accessibleLabel = `${series.label}, ${formatDate(day.date)}: ${formatMoney(value)}${day.isPartial ? ", день ещё не завершён" : ""}`;
+      const rect = svgElement("rect", {
+        x: xForIndex(index) - barWidth / 2,
+        y: Math.min(valueY, zeroY),
+        width: barWidth,
+        height: Math.max(2, Math.abs(zeroY - valueY)),
+        rx: Math.min(5, barWidth / 3),
+        fill: series.color,
+        opacity: day.isPartial ? 0.7 : 0.9,
+        class: "profit-bar",
+        tabindex: "0",
+        "aria-label": accessibleLabel,
       });
+      const title = svgElement("title");
+      title.textContent = accessibleLabel;
+      rect.appendChild(title);
+      svg.appendChild(rect);
     });
     addXAxisLabels(svg, days, dimensions, xForIndex);
     container.replaceChildren(svg);
@@ -298,6 +316,7 @@
       { points: minPoints, key: "min", fill: "#5db7ff", label: "минимум" },
     ].forEach((series) => {
       series.points.forEach((point, index) => {
+        const accessibleLabel = `${formatDate(usableDays[index].date)}, ${series.label}: ${numberFormatter.format(usableDays[index].online[series.key])}`;
         const circle = svgElement("circle", {
           cx: point[0],
           cy: point[1],
@@ -305,9 +324,10 @@
           fill: series.fill,
           class: "online-point",
           tabindex: "0",
+          "aria-label": accessibleLabel,
         });
         const title = svgElement("title");
-        title.textContent = `${formatDate(usableDays[index].date)}, ${series.label}: ${numberFormatter.format(usableDays[index].online[series.key])}`;
+        title.textContent = accessibleLabel;
         circle.appendChild(title);
         svg.appendChild(circle);
       });
@@ -343,16 +363,17 @@
   }
 
   function renderTables(days) {
-    renderTable(
-      "profit-table",
-      ["Дата", "АЗС №6", "Барбершоп №5", "Статус"],
-      days.map((day) => [
-        formatDate(day.date),
-        formatMoney(day.profits.gas),
-        formatMoney(day.profits.barbershop),
-        day.isPartial ? "Текущий день" : "Завершён",
-      ]),
-    );
+    PROFIT_SERIES.forEach((series) => {
+      renderTable(
+        series.tableId,
+        ["Дата", "Прибыль", "Статус"],
+        days.map((day) => [
+          formatDate(day.date),
+          formatMoney(day.profits[series.key]),
+          day.isPartial ? "Текущий день" : "Завершён",
+        ]),
+      );
+    });
     renderTable(
       "online-table",
       ["Дата", "Минимум", "Максимум", "Наблюдений"],
@@ -387,12 +408,17 @@
     );
     renderMetrics(payload);
     if (!payload.days.length) {
-      renderEmpty(byId("profit-chart"), "История пока пуста. График появится после успешных часовых снимков.");
+      PROFIT_SERIES.forEach((series) => {
+        renderEmpty(
+          byId(series.containerId),
+          "История пока пуста. График появится после успешных часовых снимков.",
+        );
+      });
       renderEmpty(byId("online-chart"), "Online пока не получен.");
       renderTables([]);
       return;
     }
-    renderProfitChart(payload.days);
+    PROFIT_SERIES.forEach((series) => renderProfitChart(payload.days, series));
     renderOnlineChart(payload.days);
     renderTables(payload.days);
   }
@@ -410,7 +436,9 @@
         "error",
       );
       if (!currentPayload) {
-        renderEmpty(byId("profit-chart"), "Данные временно недоступны.");
+        PROFIT_SERIES.forEach((series) => {
+          renderEmpty(byId(series.containerId), "Данные временно недоступны.");
+        });
         renderEmpty(byId("online-chart"), "Данные временно недоступны.");
       }
     }

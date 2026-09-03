@@ -308,8 +308,22 @@ h1 {
 
 .chart-grid {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
   padding: 0 0 56px;
+}
+
+.chart-card-online {
+  grid-column: 1 / -1;
+}
+
+.chart-card-profit .chart-header {
+  display: grid;
+  gap: 16px;
+}
+
+.chart-card-profit .legend {
+  justify-content: flex-start;
 }
 
 .chart-card {
@@ -547,6 +561,14 @@ footer p {
 
   .metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-card-online {
+    grid-column: auto;
   }
 
   .chart-header {

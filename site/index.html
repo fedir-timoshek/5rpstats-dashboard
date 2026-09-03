@@ -15,15 +15,15 @@
     >
     <title>Chiliad Business Pulse</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="./styles.css?v=20260902">
-    <script src="./app.js?v=20260902" defer></script>
+    <link rel="stylesheet" href="./styles.css?v=20260903">
+    <script src="./app.js?v=20260903" defer></script>
   </head>
   <body>
     <div class="ambient ambient-one" aria-hidden="true"></div>
     <div class="ambient ambient-two" aria-hidden="true"></div>
 
     <header class="site-header">
-      <a class="brand" href="./" aria-label="Chiliad Business Pulse — главная">
+      <a class="brand" href="./">
         <span class="brand-mark" aria-hidden="true">C</span>
         <span>
           <span class="eyebrow">GTA5RP · Chiliad</span>
@@ -79,33 +79,57 @@
       <section id="global-message" class="global-message" hidden aria-live="polite"></section>
 
       <section class="chart-grid" aria-label="Графики">
-        <article class="chart-card">
+        <article class="chart-card chart-card-profit" aria-labelledby="gas-profit-title">
           <header class="chart-header">
             <div>
-              <p class="eyebrow">Финансовый ритм</p>
-              <h2>Дневная прибыль бизнесов</h2>
-              <p>Сумма почасовых изменений NET за каждый календарный день.</p>
+              <p class="eyebrow">АЗС №6</p>
+              <h2 id="gas-profit-title">Дневная прибыль АЗС</h2>
+              <p>Сумма почасовых изменений NET АЗС №6 за каждый календарный день.</p>
             </div>
-            <div class="legend" aria-label="Легенда прибыли">
+            <div class="legend" aria-label="Легенда прибыли АЗС №6">
               <span><i class="legend-gas" aria-hidden="true"></i>АЗС №6</span>
-              <span><i class="legend-barbershop" aria-hidden="true"></i>Барбершоп №5</span>
             </div>
           </header>
-          <div class="chart-shell" id="profit-chart" aria-busy="true">
+          <div class="chart-shell" id="gas-profit-chart" aria-busy="true">
             <div class="chart-skeleton" aria-hidden="true"></div>
           </div>
           <p class="chart-note">Полупрозрачные столбцы — текущий неполный день.</p>
           <details class="data-details">
-            <summary>Показать данные прибыли таблицей</summary>
-            <div class="table-scroll"><table id="profit-table"></table></div>
+            <summary>Показать прибыль АЗС таблицей</summary>
+            <div class="table-scroll">
+              <table id="gas-profit-table" aria-label="Дневная прибыль АЗС №6"></table>
+            </div>
           </details>
         </article>
 
-        <article class="chart-card">
+        <article class="chart-card chart-card-profit" aria-labelledby="barbershop-profit-title">
+          <header class="chart-header">
+            <div>
+              <p class="eyebrow">Барбершоп №5</p>
+              <h2 id="barbershop-profit-title">Дневная прибыль барбершопа</h2>
+              <p>Сумма почасовых изменений NET Барбершопа №5 за каждый календарный день.</p>
+            </div>
+            <div class="legend" aria-label="Легенда прибыли Барбершопа №5">
+              <span><i class="legend-barbershop" aria-hidden="true"></i>Барбершоп №5</span>
+            </div>
+          </header>
+          <div class="chart-shell" id="barbershop-profit-chart" aria-busy="true">
+            <div class="chart-skeleton" aria-hidden="true"></div>
+          </div>
+          <p class="chart-note">Полупрозрачные столбцы — текущий неполный день.</p>
+          <details class="data-details">
+            <summary>Показать прибыль барбершопа таблицей</summary>
+            <div class="table-scroll">
+              <table id="barbershop-profit-table" aria-label="Дневная прибыль Барбершопа №5"></table>
+            </div>
+          </details>
+        </article>
+
+        <article class="chart-card chart-card-online" aria-labelledby="online-title">
           <header class="chart-header">
             <div>
               <p class="eyebrow">Нагрузка сервера</p>
-              <h2>Дневной диапазон онлайна</h2>
+              <h2 id="online-title">Дневной диапазон онлайна</h2>
               <p>Минимальное и максимальное число игроков в наблюдениях за день.</p>
             </div>
             <div class="legend" aria-label="Легенда онлайна">
@@ -119,7 +143,9 @@
           <p class="chart-note">Диапазон объединяет наблюдения обоих бизнесов на Chiliad.</p>
           <details class="data-details">
             <summary>Показать online таблицей</summary>
-            <div class="table-scroll"><table id="online-table"></table></div>
+            <div class="table-scroll">
+              <table id="online-table" aria-label="Дневной минимум и максимум онлайна Chiliad"></table>
+            </div>
           </details>
         </article>
       </section>
