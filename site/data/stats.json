@@ -76,39 +76,39 @@
       "date": "2026-09-04",
       "isPartial": true,
       "online": {
-        "max": 3152,
+        "max": 3686,
         "min": 634,
-        "samples": 15
+        "samples": 18
       },
       "profitSamples": {
-        "barbershop": 5,
-        "gas": 5,
-        "store13": 5
+        "barbershop": 6,
+        "gas": 6,
+        "store13": 6
       },
       "profits": {
-        "barbershop": 59755,
-        "gas": 157626,
-        "store13": 32926
+        "barbershop": 110337,
+        "gas": 224788,
+        "store13": 49549
       }
     }
   ],
-  "generatedAt": "2026-09-04T11:44:27.782486Z",
+  "generatedAt": "2026-09-04T15:06:32.638030Z",
   "schemaVersion": 2,
   "sourceStatus": {
     "barbershop": {
-      "lastObservedAt": "2026-09-04T11:16:42Z",
-      "observations": 18,
-      "profitSamples": 17
+      "lastObservedAt": "2026-09-04T14:59:30Z",
+      "observations": 19,
+      "profitSamples": 18
     },
     "gas": {
-      "lastObservedAt": "2026-09-04T11:16:37Z",
-      "observations": 26,
-      "profitSamples": 25
+      "lastObservedAt": "2026-09-04T14:59:25Z",
+      "observations": 27,
+      "profitSamples": 26
     },
     "store13": {
-      "lastObservedAt": "2026-09-04T11:16:47Z",
-      "observations": 10,
-      "profitSamples": 9
+      "lastObservedAt": "2026-09-04T14:59:35Z",
+      "observations": 11,
+      "profitSamples": 10
     }
   },
   "timezoneLabel": "Europe/Moscow (UTC+3)"
