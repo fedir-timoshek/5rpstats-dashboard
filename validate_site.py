@@ -240,14 +240,14 @@ def validate_site(site_directory: Path) -> dict[str, int]:
         'id="store-profit-chart"',
         'id="online-chart"',
         'id="global-message"',
-        '<link rel="stylesheet" href="./styles.css?v=20260904">',
-        '<script src="./app.js?v=20260904" defer></script>',
+        '<link rel="stylesheet" href="./styles.css?v=20260905">',
+        '<script src="./app.js?v=20260905" defer></script>',
     )
     if any(fragment not in html for fragment in required_html_fragments):
         raise SiteValidationError("Pages HTML accessibility or security contract changed")
     if "@media (prefers-reduced-motion: reduce)" not in css:
         raise SiteValidationError("Pages CSS must preserve reduced-motion behavior")
-    if ".profit-bar:focus-visible" not in css or ".online-point:focus-visible" not in css:
+    if ".profit-point:focus-visible" not in css or ".online-point:focus-visible" not in css:
         raise SiteValidationError("Pages charts must preserve visible keyboard focus")
     runtime_text = (html + css + javascript).replace("http://www.w3.org/2000/svg", "")
     if re.search(r"https?://", runtime_text, flags=re.IGNORECASE):
