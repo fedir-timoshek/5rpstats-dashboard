@@ -34,7 +34,7 @@
   }
 
   function emptyDay(date, isPartial) {
-    return { date, isPartial, profits: { gas: null, barbershop: null, store13: null }, profitSamples: { gas: 0, barbershop: 0, store13: 0 }, online: { min: null, max: null, samples: 0 } };
+    return { date, isPartial, profits: { gas: null, barbershop: null, store13: null }, profitSamples: { gas: 0, barbershop: 0, store13: 0 }, online: { min: null, max: null, samples: 0 }, profitIntervals: { gas: null, barbershop: null, store13: null } };
   }
 
   function selectDays(payload, period = activePeriod, now = new Date()) {
@@ -87,11 +87,219 @@
     return labels.length ? ` · ${labels.join(" · ")}` : "";
   }
 
+  const timeFormatter = new Intl.DateTimeFormat("ru-RU", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Moscow" });
+  const preciseTimeFormatter = new Intl.DateTimeFormat("ru-RU", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Europe/Moscow" });
+  const detailState = new Map();
+
+  function localDate(timestamp) {
+    return new Date(Date.parse(timestamp) + 3 * 3600000).toISOString().slice(0, 10);
+  }
+
+  function timestampKey(value) {
+    return value.replace(/(?:\.(\d{1,6}))?Z$/, (_, fraction = "") => `.${fraction.padEnd(6, "0")}Z`);
+  }
+
+  function intervalLabel(entry, precise = false) {
+    const formatter = precise ? preciseTimeFormatter : timeFormatter;
+    const end = new Date(entry.to);
+    if (!entry.from) return `${dateFormatter.format(end)}, ${formatter.format(end)} · начало неизвестно`;
+    const start = new Date(entry.from);
+    return localDate(entry.from) === localDate(entry.to)
+      ? `${dateFormatter.format(start)}, ${formatter.format(start)}–${formatter.format(end)}`
+      : `${dateFormatter.format(start)}, ${formatter.format(start)} — ${dateFormatter.format(end)}, ${formatter.format(end)}`;
+  }
+
+  function intervalSummary(day, key) {
+    const entries = day.profitIntervals?.[key];
+    if (!Array.isArray(entries)) return day.isMonthly ? "По доступным дневным итогам" : "Детализация за последние 30 дней";
+    const valued = entries.filter((entry) => Number.isFinite(entry.profit));
+    if (!valued.length) return "Нет записей с рассчитанной прибылью";
+    const starts = valued.map((entry) => entry.from).filter(Boolean).sort();
+    const ends = valued.map((entry) => entry.to).sort();
+    if (starts.length !== valued.length) return `${intervalLabel({ from: null, to: ends[ends.length - 1] })} · МСК`;
+    return `${intervalLabel({ from: starts[0], to: ends[ends.length - 1] })} МСК`;
+  }
+
+  function groupIntervals(day, key) {
+    const groups = [
+      { key: "night", label: "Ночь", entries: [] },
+      { key: "morning", label: "Утро", entries: [] },
+      { key: "day", label: "День", entries: [] },
+      { key: "evening", label: "Вечер", entries: [] },
+      { key: "mixed", label: "Несколько периодов", entries: [] },
+      { key: "unknown", label: "Неполные записи", entries: [] },
+    ];
+    const part = (timestamp) => {
+      const date = new Date(timestamp + 3 * 3600000);
+      return `${date.toISOString().slice(0, 10)}:${Math.floor(date.getUTCHours() / 6)}`;
+    };
+    for (const entry of day.profitIntervals?.[key] || []) {
+      let group = 5;
+      if (entry.from && Number.isFinite(entry.profit)) {
+        const from = Date.parse(entry.from);
+        // Intervals are (from, to]; a sample exactly at a boundary completes the preceding interval.
+        const end = Date.parse(entry.to) - 1;
+        group = part(from) === part(end) && reportingDay(new Date(from)) === day.date
+          ? Number(part(from).split(":")[1]) : 4;
+      }
+      groups[group].entries.push(entry);
+    }
+    return groups.filter((group) => group.entries.length).map((group) => {
+      const values = group.entries.map((entry) => entry.profit).filter(Number.isFinite);
+      return { ...group, profit: values.length ? values.reduce((sum, value) => sum + value, 0) : null };
+    });
+  }
+
+  function htmlElement(tag, className, text) {
+    const element = document.createElement(tag);
+    if (className) element.className = className;
+    if (text !== undefined) element.textContent = text;
+    return element;
+  }
+
+  function syncExpanded(series) {
+    const selected = detailState.get(series.key);
+    byId(series.containerId).querySelectorAll("[data-date]").forEach((point) => {
+      point.setAttribute("aria-expanded", String(Boolean(selected && point.dataset.date === (selected.parentMonth || selected.date))));
+    });
+  }
+
+  function closeDetail(series) {
+    const state = detailState.get(series.key);
+    detailState.delete(series.key);
+    const panel = byId(`${series.containerId}-detail`);
+    if (panel) { panel.hidden = true; panel.replaceChildren(); delete panel.dataset.signature; }
+    syncExpanded(series);
+    const points = [...byId(series.containerId).querySelectorAll("[data-date]")];
+    const origin = points.find((point) => point.dataset.date === (state?.parentMonth || state?.date)) || points[0];
+    if (origin) { points.forEach((point) => point.setAttribute("tabindex", point === origin ? "0" : "-1")); origin.focus({ preventScroll: true }); }
+  }
+
+  function openDetail(day, series, parentMonth = null) {
+    const current = detailState.get(series.key);
+    if (!current || current.date !== day.date || current.isMonthly !== Boolean(day.isMonthly)) {
+      detailState.set(series.key, { date: day.date, isMonthly: Boolean(day.isMonthly), parentMonth, groups: new Set() });
+    }
+    renderDetail(series);
+    syncExpanded(series);
+    byId(`${series.containerId}-detail`).querySelector("h3").focus();
+  }
+
+  function renderDetail(series) {
+    const state = detailState.get(series.key);
+    const id = `${series.containerId}-detail`;
+    let panel = byId(id);
+    if (!panel) {
+      panel = htmlElement("section", "profit-detail");
+      panel.id = id;
+      panel.setAttribute("aria-labelledby", `${id}-title`);
+      panel.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") { event.preventDefault(); closeDetail(series); }
+      });
+      byId(series.containerId).after(panel);
+    }
+    panel.hidden = !state;
+    if (!state) { panel.replaceChildren(); delete panel.dataset.signature; return; }
+    const day = state.isMonthly
+      ? selectDays(currentPayload, "year").find((item) => item.date === state.date)
+      : currentPayload.days.find((item) => item.date === state.date);
+    const selected = { ...(day || emptyDay(state.date, false)), isMonthly: state.isMonthly };
+    const monthDays = state.isMonthly ? currentPayload.days.filter((item) => item.date.startsWith(state.date.slice(0, 7)) && item.date <= reportingDay(new Date())) : [];
+    if (state.isMonthly) {
+      const values = monthDays.map((item) => item.profits[series.key]).filter(Number.isFinite);
+      selected.profits[series.key] = values.length ? values.reduce((sum, value) => sum + value, 0) : null;
+    }
+    const signature = JSON.stringify([state.date, state.isMonthly, state.parentMonth, selected, monthDays]);
+    if (panel.dataset.signature === signature) return;
+    const focused = panel.contains(document.activeElement) ? document.activeElement.dataset.detailFocus : null;
+    const header = htmlElement("div", "detail-header");
+    const heading = htmlElement("h3", "", `${series.label} · ${formatDate(selected)}`);
+    heading.id = `${id}-title`; heading.tabIndex = -1; heading.dataset.detailFocus = "title";
+    const close = htmlElement("button", "detail-close", "×");
+    close.type = "button"; close.setAttribute("aria-label", "Закрыть детализацию"); close.dataset.detailFocus = "close";
+    close.addEventListener("click", () => closeDetail(series));
+    header.append(heading, close);
+    const total = htmlElement("p", "detail-total", formatMoney(selected.profits[series.key]));
+    const coverage = htmlElement("p", "detail-caption", intervalSummary(selected, series.key));
+    const body = htmlElement("div", "detail-body");
+    if (state.parentMonth) {
+      const back = htmlElement("button", "detail-back", `← ${formatDate({ date: state.parentMonth, isMonthly: true })}`);
+      back.type = "button"; back.dataset.detailFocus = "back";
+      back.addEventListener("click", () => openDetail({ date: state.parentMonth, isMonthly: true }, series));
+      body.append(back);
+    }
+    if (state.isMonthly) {
+      body.append(htmlElement("p", "detail-caption", "По дням · интервалы доступны за последние 30 дней"));
+      for (const item of monthDays) {
+        const available = Array.isArray(item.profitIntervals?.[series.key]) && item.profitIntervals[series.key].length > 0;
+        const row = htmlElement(available ? "button" : "div", "detail-day-row");
+        row.append(htmlElement("span", "", formatDate(item)), htmlElement("strong", "", formatMoney(item.profits[series.key])));
+        if (available) { row.type = "button"; row.dataset.detailFocus = item.date; row.addEventListener("click", () => openDetail(item, series, state.date)); }
+        body.append(row);
+      }
+      if (!monthDays.length) body.append(htmlElement("p", "detail-caption", "Нет записей за этот месяц"));
+    } else {
+      const groups = groupIntervals(selected, series.key);
+      if (groups.length) body.append(htmlElement("p", "detail-caption", "Суммы между снимками · время МСК"));
+      for (const group of groups) {
+        const disclosure = htmlElement("details", "interval-group");
+        disclosure.dataset.group = group.key;
+        disclosure.open = state.groups.has(group.key);
+        const summary = htmlElement("summary", "");
+        summary.dataset.detailFocus = group.key;
+        const name = htmlElement("span", "group-label", group.label);
+        name.append(htmlElement("small", "", `${group.entries.length} ${group.entries.length % 100 >= 11 && group.entries.length % 100 <= 14 ? "записей" : group.entries.length % 10 === 1 ? "запись" : group.entries.length % 10 >= 2 && group.entries.length % 10 <= 4 ? "записи" : "записей"}`));
+        summary.append(name, htmlElement("strong", "", formatMoney(group.profit)));
+        const list = htmlElement("div", "interval-list");
+        if (group.key === "mixed") list.append(htmlElement("p", "detail-caption", "Интервал пересекает границы частей суток; сумма не разделяется."));
+        for (const entry of group.entries) {
+          const row = htmlElement("div", "interval-row");
+          row.append(htmlElement("span", "interval-time", intervalLabel(entry, true)), htmlElement("strong", "", Number.isFinite(entry.profit) ? formatMoney(entry.profit) : "Нет расчёта"));
+          list.append(row);
+        }
+        disclosure.append(summary, list);
+        disclosure.addEventListener("toggle", () => { if (disclosure.open) state.groups.add(group.key); else state.groups.delete(group.key); });
+        body.append(disclosure);
+      }
+      if (Array.isArray(selected.profitIntervals?.[series.key]) && !groups.length) body.append(htmlElement("p", "detail-caption", "Нет записей за этот день"));
+    }
+    panel.replaceChildren(header, total, coverage, body);
+    panel.dataset.signature = signature;
+    if (focused) {
+      const restored = [...panel.querySelectorAll("[data-detail-focus]")].find((element) => element.dataset.detailFocus === focused) || heading;
+      restored.focus({ preventScroll: true });
+    }
+  }
+
   function validatePayload(payload) {
     if (!payload || payload.schemaVersion !== 2 || !Array.isArray(payload.days) || payload.days.length > 366) throw new Error("Invalid aggregate");
     for (const day of payload.days) {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(day.date) || !day.profits || !day.online || !day.profitSamples) throw new Error("Invalid day");
       if (!PROFIT_SERIES.every(({ key }) => day.profits[key] === null || Number.isFinite(day.profits[key]))) throw new Error("Invalid profit");
+      if (day.profitIntervals !== undefined) {
+        if (!day.profitIntervals || Object.keys(day.profitIntervals).sort().join(",") !== "barbershop,gas,store13") throw new Error("Invalid interval sources");
+        for (const { key } of PROFIT_SERIES) {
+          const entries = day.profitIntervals[key];
+          if (entries === null) continue;
+          if (!Array.isArray(entries) || entries.length > 10000) throw new Error("Invalid intervals");
+          let previous = "";
+          let sum = 0;
+          let count = 0;
+          for (const entry of entries) {
+            if (!entry || Object.keys(entry).sort().join(",") !== "from,profit,to") throw new Error("Invalid interval fields");
+            const canonical = (value) => typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$/.test(value) && Number.isFinite(Date.parse(value));
+            if (!canonical(entry.to) || (entry.from !== null && !canonical(entry.from))) throw new Error("Invalid interval time");
+            const to = Date.parse(entry.to);
+            const endKey = timestampKey(entry.to);
+            if (endKey < previous || reportingDay(new Date(to)) !== day.date || (entry.from !== null && timestampKey(entry.from) >= endKey)) throw new Error("Invalid interval range");
+            if (entry.profit !== null && (!Number.isSafeInteger(entry.profit) || Math.abs(entry.profit) > 1e12)) throw new Error("Invalid interval profit");
+            previous = endKey;
+            if (entry.profit !== null) { sum += entry.profit; count += 1; }
+          }
+          if ((count ? sum : null) !== day.profits[key] || count !== day.profitSamples[key]) throw new Error("Interval total mismatch");
+        }
+      }
+
     }
     return payload;
   }
@@ -207,10 +415,16 @@
     tooltip.hidden = true;
     const crosshair = svgElement("line", { y1: margin.top, y2: height - margin.bottom, class: "chart-crosshair", visibility: "hidden" });
     const focusPoints = [];
+    const rememberedIndex = days.findIndex((day) => day.date === container.dataset.inspectedDate);
+    let inspectedIndex = rememberedIndex >= 0 ? rememberedIndex : days.length - 1;
+    tooltip.id = `${container.id}-tooltip`;
+    tooltip.setAttribute("role", "tooltip");
     const show = (index) => {
       const day = days[index];
+      inspectedIndex = index;
+      container.dataset.inspectedDate = day.date;
       const x = scale.x(index, days.length);
-      tooltip.textContent = `${formatDate(day)}${pointStatus(day, series[0].key)}\n${series.map((line) => `${money ? "" : `${line.label}: `}${Number.isFinite(line.value(day)) ? (money ? formatMoney(line.value(day)) : numberFormatter.format(line.value(day))) : "Нет данных"}`).join("\n")}`;
+      tooltip.textContent = `${formatDate(day)}${pointStatus(day, series[0].key)}\n${series.map((line) => `${money ? "" : `${line.label}: `}${Number.isFinite(line.value(day)) ? (money ? formatMoney(line.value(day)) : numberFormatter.format(line.value(day))) : "Нет данных"}`).join("\n")}${money ? `\n${intervalSummary(day, series[0].key)}\nНажмите, чтобы раскрыть` : ""}`;
       tooltip.hidden = false;
       tooltip.style.left = `${Math.max(0, Math.min(x + 12, width - tooltip.offsetWidth))}px`;
       tooltip.style.top = "4px";
@@ -241,9 +455,9 @@
       days.forEach((day, index) => {
         const value = line.value(day);
         if (!Number.isFinite(value)) return;
-        const point = svgElement("circle", { cx: scale.x(index, days.length), cy: scale.y(value), r: day.isPartial ? 5 : 4, fill: line.color, class: money ? "profit-point" : "online-point", role: "img", tabindex: focusPoints.length ? -1 : 0, "data-index": index, "data-date": day.date, "data-series": line.key, "aria-label": `${formatDate(day)}, ${line.label}: ${money ? formatMoney(value) : numberFormatter.format(value)}${pointStatus(day, line.key)}` });
+        const point = svgElement("circle", { cx: scale.x(index, days.length), cy: scale.y(value), r: day.isPartial ? 5 : 4, fill: line.color, class: money ? "profit-point" : "online-point", role: money ? "button" : "img", "aria-controls": money ? `${container.id}-detail` : "", "aria-expanded": money ? "false" : "", "aria-describedby": tooltip.id, tabindex: focusPoints.length ? -1 : 0, "data-index": index, "data-date": day.date, "data-series": line.key, "aria-label": `${formatDate(day)}, ${line.label}: ${money ? formatMoney(value) : numberFormatter.format(value)}${pointStatus(day, line.key)}` });
         point.addEventListener("focus", () => show(index));
-        point.addEventListener("click", () => { focusPoints.forEach((other) => other.setAttribute("tabindex", other === point ? "0" : "-1")); point.focus(); });
+        point.addEventListener("click", (event) => { event.stopPropagation(); focusPoints.forEach((other) => other.setAttribute("tabindex", other === point ? "0" : "-1")); if (money) { hide(); openDetail(day, series[0]); } else point.focus(); });
         focusPoints.push(point); svg.appendChild(point);
       });
     });
@@ -254,11 +468,13 @@
       show(index);
     };
     svg.addEventListener("pointermove", inspectPointer);
-    svg.addEventListener("pointerdown", inspectPointer);
-    svg.addEventListener("pointerleave", () => { if (!svg.contains(document.activeElement)) hide(); });
+    // A tap opens details only on click, never when a touch scroll begins.
+    if (money) svg.addEventListener("click", (event) => { inspectPointer(event); hide(); openDetail(days[inspectedIndex], series[0]); });
+    container.onpointerleave = () => { if (!container.contains(document.activeElement)) hide(); };
     svg.addEventListener("focusout", (event) => { if (!svg.contains(event.relatedTarget)) hide(); });
     svg.addEventListener("keydown", (event) => {
       if (event.key === "Escape") { hide(); return; }
+      if (money && ["Enter", " "].includes(event.key) && document.activeElement?.dataset.index !== undefined) { event.preventDefault(); hide(); openDetail(days[Number(document.activeElement.dataset.index)], series[0]); return; }
       const index = focusPoints.indexOf(document.activeElement);
       if (index < 0 || !["ArrowRight", "ArrowLeft", "Home", "End"].includes(event.key)) return;
       event.preventDefault();
@@ -266,12 +482,24 @@
       focusPoints.forEach((point, pointIndex) => point.setAttribute("tabindex", pointIndex === next ? "0" : "-1"));
       focusPoints[next].focus();
     });
-    container.replaceChildren(svg, tooltip);
+    const children = [svg, tooltip];
+    if (money) {
+      const action = htmlElement("button", "chart-detail-action", "Подробнее по дню");
+      action.type = "button";
+      action.dataset.chartAction = "detail";
+      if (days[0]?.isMonthly) action.textContent = "Подробнее по месяцу";
+      action.setAttribute("aria-controls", `${container.id}-detail`);
+      action.addEventListener("click", () => { hide(); openDetail(days[inspectedIndex], series[0]); });
+      children.push(action);
+    }
+    container.replaceChildren(...children);
     container.setAttribute("aria-busy", "false");
   }
 
   function renderProfitChart(days, series) {
-    renderLines(days, byId(series.containerId), [{ ...series, value: (day) => day.profits[series.key] }], `Прибыль ${series.label}. Стрелки влево и вправо — значения.`, true);
+    renderLines(days, byId(series.containerId), [{ ...series, value: (day) => day.profits[series.key] }], `Прибыль ${series.label}. Стрелки — значения, Enter — детализация.`, true);
+    renderDetail(series);
+    syncExpanded(series);
   }
 
   function renderTable(id, headers, rows) {
@@ -293,6 +521,7 @@
     const chartFocus = focused?.closest?.(".chart-shell");
     const focusedDate = focused?.dataset?.date;
     const focusedSeries = focused?.dataset?.series;
+    const focusedAction = focused?.dataset?.chartAction;
     currentPayload = payload;
     renderFreshness();
     const days = selectDays(payload);
@@ -312,6 +541,7 @@
     renderTable("online-table", [activePeriod === "year" ? "Месяц" : "Дата", "Минимум", "Максимум"], days.map((day) => [formatDate(day), Number.isFinite(day.online.min) ? numberFormatter.format(day.online.min) : "—", Number.isFinite(day.online.max) ? numberFormatter.format(day.online.max) : "—"]));
     document.querySelectorAll(".period-dates").forEach((element) => { element.textContent = `${formatDate(days[0])} — ${formatDate(days[days.length - 1])}`; });
     byId("gas-profit-table").dataset.day = reportingDay(new Date());
+    if (chartFocus && focusedAction) chartFocus.querySelector("[data-chart-action]")?.focus({ preventScroll: true });
     if (chartFocus && focusedDate) {
       const points = [...chartFocus.querySelectorAll("[data-date]")];
       const restored = points.find((point) => point.dataset.date === focusedDate && point.dataset.series === focusedSeries) || points[0];
@@ -336,6 +566,7 @@
 
   document.querySelectorAll("[data-period]").forEach((button) => {
     button.addEventListener("click", () => {
+      detailState.clear();
       activePeriod = button.dataset.period;
       document.querySelectorAll("[data-period]").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
       if (currentPayload) render(currentPayload);

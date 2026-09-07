@@ -20,7 +20,7 @@ TOP_LEVEL_KEYS = {
     "sourceStatus",
     "days",
 }
-DAY_KEYS = {"date", "isPartial", "profits", "profitSamples", "online"}
+DAY_KEYS = {"date", "isPartial", "profits", "profitSamples", "profitIntervals", "online"}
 BUSINESS_ORDER = ("gas", "barbershop", "store13")
 BUSINESS_IDS = frozenset(BUSINESS_ORDER)
 BUSINESS_LABELS = {
@@ -71,6 +71,71 @@ def _is_optional_integer(value: Any) -> bool:
     return value is None or _is_integer(value)
 
 
+def _reporting_day(timestamp: datetime) -> date:
+    return (timestamp.astimezone(SOURCE_TIMEZONE) - timedelta(hours=1)).date()
+
+
+def _interval_timestamp(value: Any) -> datetime:
+    if not isinstance(value, str) or not re.fullmatch(
+        r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{6})?Z", value
+    ):
+        raise SiteValidationError("Dashboard interval timestamp must be canonical UTC")
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as error:
+        raise SiteValidationError("Dashboard interval timestamp is invalid") from error
+    if parsed.isoformat().replace("+00:00", "Z") != value:
+        raise SiteValidationError("Dashboard interval timestamp must be canonical UTC")
+    return parsed
+
+
+def _validate_profit_intervals(
+    day: dict[str, Any], *, first_day: date, latest_allowed_at: datetime,
+) -> None:
+    intervals_by_source = day.get("profitIntervals")
+    if not isinstance(intervals_by_source, dict) or set(intervals_by_source) != BUSINESS_IDS:
+        raise SiteValidationError("Dashboard interval business allowlist changed")
+    reporting_day = date.fromisoformat(day["date"])
+    for source_id, intervals in intervals_by_source.items():
+        if reporting_day < first_day:
+            if intervals is not None:
+                raise SiteValidationError("Dashboard interval history exceeds 30 reporting days")
+            continue
+        if not isinstance(intervals, list):
+            raise SiteValidationError("Dashboard recent intervals must be arrays")
+        previous_end: datetime | None = None
+        profit_total = 0
+        profit_samples = 0
+        for interval in intervals:
+            if not isinstance(interval, dict) or set(interval) != {"from", "to", "profit"}:
+                raise SiteValidationError("Dashboard interval keys changed")
+            ended_at = _interval_timestamp(interval["to"])
+            if ended_at > latest_allowed_at:
+                raise SiteValidationError("Dashboard interval timestamp is in the future")
+            if _reporting_day(ended_at) != reporting_day:
+                raise SiteValidationError("Dashboard interval does not match its reporting day")
+            if previous_end is not None and ended_at < previous_end:
+                raise SiteValidationError("Dashboard interval timestamps must be chronological")
+            previous_end = ended_at
+            if interval["from"] is not None:
+                started_at = _interval_timestamp(interval["from"])
+                if started_at >= ended_at:
+                    raise SiteValidationError("Dashboard interval start must precede its end")
+            profit = interval["profit"]
+            if not _is_optional_integer(profit) or (
+                profit is not None and abs(profit) > 1_000_000_000_000
+            ):
+                raise SiteValidationError("Dashboard interval profit must be a bounded integer or null")
+            if profit is not None:
+                profit_samples += 1
+                profit_total += profit
+        if (
+            profit_samples != day["profitSamples"][source_id]
+            or (profit_total if profit_samples else None) != day["profits"][source_id]
+        ):
+            raise SiteValidationError("Dashboard intervals do not match daily profit totals or counts")
+
+
 def validate_payload(
     payload: dict[str, Any],
     *,
@@ -81,7 +146,7 @@ def validate_payload(
         checked_at = checked_at.replace(tzinfo=timezone.utc)
     checked_at = checked_at.astimezone(timezone.utc)
     latest_allowed_at = checked_at + MAX_FUTURE_SKEW
-    latest_allowed_day = latest_allowed_at.astimezone(SOURCE_TIMEZONE).date()
+    latest_allowed_day = _reporting_day(latest_allowed_at)
     if set(payload) != TOP_LEVEL_KEYS:
         raise SiteValidationError("Dashboard payload top-level keys changed")
     if not _is_integer(payload.get("schemaVersion")) or payload["schemaVersion"] != 2:
@@ -96,6 +161,8 @@ def validate_payload(
         raise SiteValidationError("Dashboard generation timestamp must include a timezone")
     if generated_at.astimezone(timezone.utc) > latest_allowed_at:
         raise SiteValidationError("Dashboard generation timestamp is in the future")
+    interval_first_day = _reporting_day(generated_at) - timedelta(days=29)
+    interval_latest_at = min(latest_allowed_at, generated_at + MAX_FUTURE_SKEW)
     if payload.get("timezoneLabel") != "Europe/Moscow (UTC+3)":
         raise SiteValidationError("Dashboard timezone contract changed")
     if payload.get("currency") != "$":
@@ -172,6 +239,9 @@ def validate_payload(
             raise SiteValidationError("Dashboard profit sample series changed")
         if not all(_is_integer(value) and value >= 0 for value in profit_samples.values()):
             raise SiteValidationError("Dashboard profit sample counts are invalid")
+        _validate_profit_intervals(
+            day, first_day=interval_first_day, latest_allowed_at=interval_latest_at,
+        )
         if not isinstance(online, dict) or set(online) != {"min", "max", "samples"}:
             raise SiteValidationError("Dashboard online series changed")
         if not _is_optional_integer(online["min"]) or not _is_optional_integer(online["max"]):
@@ -240,8 +310,8 @@ def validate_site(site_directory: Path) -> dict[str, int]:
         'id="store-profit-chart"',
         'id="online-chart"',
         'id="global-message"',
-        '<link rel="stylesheet" href="./styles.css?v=20260905">',
-        '<script src="./app.js?v=20260907-reporting-day" defer></script>',
+        '<link rel="stylesheet" href="./styles.css?v=20260907-profit-details">',
+        '<script src="./app.js?v=20260907-profit-details" defer></script>',
     )
     if any(fragment not in html for fragment in required_html_fragments):
         raise SiteValidationError("Pages HTML accessibility or security contract changed")
