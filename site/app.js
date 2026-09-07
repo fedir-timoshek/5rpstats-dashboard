@@ -131,30 +131,21 @@
   }
 
   function groupIntervals(day, key) {
+    const entries = day.profitIntervals?.[key];
+    if (!Array.isArray(entries)) return [];
     const groups = [
-      { key: "night", label: "Ночь", entries: [] },
-      { key: "morning", label: "Утро", entries: [] },
-      { key: "day", label: "День", entries: [] },
-      { key: "evening", label: "Вечер", entries: [] },
-      { key: "mixed", label: "Несколько периодов", entries: [] },
-      { key: "unknown", label: "Неполные записи", entries: [] },
+      { key: "night", label: "Ночь", hours: "01:00–06:00", entries: [] },
+      { key: "morning", label: "Утро", hours: "06:00–12:00", entries: [] },
+      { key: "day", label: "День", hours: "12:00–18:00", entries: [] },
+      { key: "evening", label: "Вечер", hours: "18:00–01:00 следующего дня", entries: [] },
     ];
-    const part = (timestamp) => {
-      const date = new Date(timestamp + 3 * 3600000);
-      return `${date.toISOString().slice(0, 10)}:${Math.floor(date.getUTCHours() / 6)}`;
-    };
-    for (const entry of day.profitIntervals?.[key] || []) {
-      let group = 5;
-      if (entry.from && Number.isFinite(entry.profit)) {
-        const from = Date.parse(entry.from);
-        // Intervals are (from, to]; a sample exactly at a boundary completes the preceding interval.
-        const end = Date.parse(entry.to) - 1;
-        group = part(from) === part(end) && reportingDay(new Date(from)) === day.date
-          ? Number(part(from).split(":")[1]) : 4;
-      }
+    // Group by the final snapshot, retaining each whole interval and its original reporting day.
+    for (const entry of [...entries].sort((a, b) => timestampKey(a.to).localeCompare(timestampKey(b.to)))) {
+      const hour = new Date(Date.parse(entry.to) + 3 * 3600000).getUTCHours();
+      const group = hour < 1 || hour >= 18 ? 3 : hour < 6 ? 0 : hour < 12 ? 1 : 2;
       groups[group].entries.push(entry);
     }
-    return groups.filter((group) => group.entries.length).map((group) => {
+    return groups.map((group) => {
       const values = group.entries.map((entry) => entry.profit).filter(Number.isFinite);
       return { ...group, profit: values.length ? values.reduce((sum, value) => sum + value, 0) : null };
     });
@@ -250,18 +241,28 @@
       if (!monthDays.length) body.append(htmlElement("p", "detail-caption", "Нет записей за этот месяц"));
     } else {
       const groups = groupIntervals(selected, series.key);
-      if (groups.length) body.append(htmlElement("p", "detail-caption", "Суммы между снимками · время МСК"));
+      if (groups.length) body.append(htmlElement("p", "detail-caption", "По времени последнего снимка · МСК"));
       for (const group of groups) {
+        const name = htmlElement("span", "group-label", group.label);
+        name.append(htmlElement("small", "", group.hours));
+        if (!group.entries.length) {
+          const empty = htmlElement("div", "interval-group interval-group-empty");
+          empty.dataset.group = group.key;
+          const row = htmlElement("div", "interval-heading");
+          row.append(name, htmlElement("span", "group-empty-label", "Нет записей"));
+          empty.append(row);
+          body.append(empty);
+          continue;
+        }
         const disclosure = htmlElement("details", "interval-group");
         disclosure.dataset.group = group.key;
         disclosure.open = state.groups.has(group.key);
-        const summary = htmlElement("summary", "");
+        const summary = htmlElement("summary", "interval-heading");
         summary.dataset.detailFocus = group.key;
-        const name = htmlElement("span", "group-label", group.label);
-        name.append(htmlElement("small", "", `${group.entries.length} ${group.entries.length % 100 >= 11 && group.entries.length % 100 <= 14 ? "записей" : group.entries.length % 10 === 1 ? "запись" : group.entries.length % 10 >= 2 && group.entries.length % 10 <= 4 ? "записи" : "записей"}`));
-        summary.append(name, htmlElement("strong", "", formatMoney(group.profit)));
+        summary.append(name, htmlElement("strong", "", Number.isFinite(group.profit) ? formatMoney(group.profit) : "Нет расчёта"));
         const list = htmlElement("div", "interval-list");
-        if (group.key === "mixed") list.append(htmlElement("p", "detail-caption", "Интервал пересекает границы частей суток; сумма не разделяется."));
+        const count = group.entries.length;
+        list.append(htmlElement("p", "detail-caption interval-count", `${count} ${count % 100 >= 11 && count % 100 <= 14 ? "записей" : count % 10 === 1 ? "запись" : count % 10 >= 2 && count % 10 <= 4 ? "записи" : "записей"}`));
         for (const entry of group.entries) {
           const row = htmlElement("div", "interval-row");
           row.append(htmlElement("span", "interval-time", intervalLabel(entry, true)), htmlElement("strong", "", Number.isFinite(entry.profit) ? formatMoney(entry.profit) : "Нет расчёта"));
@@ -271,7 +272,6 @@
         disclosure.addEventListener("toggle", () => { if (disclosure.open) state.groups.add(group.key); else state.groups.delete(group.key); });
         body.append(disclosure);
       }
-      if (Array.isArray(selected.profitIntervals?.[series.key]) && !groups.length) body.append(htmlElement("p", "detail-caption", "Нет записей за этот день"));
     }
     panel.replaceChildren(header, total, coverage, body);
     panel.dataset.signature = signature;
