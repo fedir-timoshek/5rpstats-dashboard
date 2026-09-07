@@ -95,6 +95,16 @@
     return new Date(Date.parse(timestamp) + 3 * 3600000).toISOString().slice(0, 10);
   }
 
+  function formatTodayObservation(timestamp, now = new Date()) {
+    if (!timestamp || !Number.isFinite(Date.parse(timestamp))) return "Нет снимка за сегодня";
+    const observed = new Date(timestamp);
+    const day = reportingDay(now);
+    if (reportingDay(observed) !== day) return "Нет снимка за сегодня";
+    // A 00:00–00:59 observation still belongs to the previous reporting day.
+    const prefix = localDate(timestamp) === day ? "На " : `${dateFormatter.format(observed)}, `;
+    return `${prefix}${timeFormatter.format(observed)} МСК`;
+  }
+
   function timestampKey(value) {
     return value.replace(/(?:\.(\d{1,6}))?Z$/, (_, fraction = "") => `.${fraction.padEnd(6, "0")}Z`);
   }
@@ -314,6 +324,10 @@
   function renderFreshness() {
     if (!currentPayload) return;
     const payload = currentPayload;
+    const now = new Date();
+    PROFIT_SERIES.forEach(({ key, id }) => {
+      byId(`${id}-today-observation`).textContent = formatTodayObservation(payload.sourceStatus?.[key]?.lastObservedAt, now);
+    });
     const delayed = PROFIT_SERIES.filter(({ key }) => {
       const value = payload.sourceStatus?.[key]?.lastObservedAt;
       return !value || !Number.isFinite(Date.parse(value)) || Date.now() - Date.parse(value) >= STALE_AFTER_MS;
@@ -335,7 +349,7 @@
 
   function chartDimensions(container) {
     const width = Math.max(240, Math.round(container.getBoundingClientRect().width || 1000));
-    return { width, height: width < 520 ? 280 : width < 1000 ? 360 : 400, margin: { top: 22, right: 22, bottom: 40, left: width < 520 ? 55 : 72 } };
+    return { width, height: width < 520 ? 250 : 280, margin: { top: 22, right: 22, bottom: 40, left: width < 520 ? 55 : 72 } };
   }
 
   function chartAxis(values) {
@@ -362,6 +376,26 @@
     return { ...axis, y: (value) => height - margin.bottom - (value - axis.min) / (axis.max - axis.min) * (height - margin.bottom - margin.top), x: (index, count) => margin.left + (width - margin.left - margin.right) * index / Math.max(1, count - 1) };
   }
 
+  function chartDateTickIndices(days, { width, margin }) {
+    const plotWidth = Math.max(0, width - margin.left - margin.right);
+    const characterWidth = width < 520 ? 6 : 7;
+    for (let count = Math.min(days.length, width < 520 ? 4 : 8); count >= 2; count -= 1) {
+      const indices = Array.from({ length: count }, (_, index) => Math.round(index * (days.length - 1) / (count - 1)));
+      let previousRight = -Infinity;
+      const fits = indices.every((dayIndex, index) => {
+        const x = plotWidth * dayIndex / Math.max(1, days.length - 1);
+        const labelWidth = formatDate(days[dayIndex]).length * characterWidth;
+        // Edge labels face inward; use their full width when checking their neighbours.
+        const left = index === 0 ? x : index === count - 1 ? x - labelWidth : x - labelWidth / 2;
+        const separated = left >= previousRight + 12;
+        previousRight = left + labelWidth;
+        return separated;
+      });
+      if (fits || count === 2) return indices;
+    }
+    return days.length ? [0] : [];
+  }
+
   function addAxes(svg, days, dimensions, scale, money) {
     const { width, height, margin } = dimensions;
     for (const value of scale.ticks) {
@@ -371,13 +405,12 @@
       label.textContent = formatAxisValue(value, money);
       svg.appendChild(label);
     }
-    const ticks = Math.min(days.length, width < 520 ? 4 : 8);
-    for (let index = 0; index < ticks; index += 1) {
-      const dayIndex = Math.round(index * (days.length - 1) / Math.max(1, ticks - 1));
-      const label = svgElement("text", { x: scale.x(dayIndex, days.length), y: height - 10, "text-anchor": index === 0 ? "start" : index === ticks - 1 ? "end" : "middle", class: "chart-axis-label" });
+    const ticks = chartDateTickIndices(days, dimensions);
+    ticks.forEach((dayIndex, index) => {
+      const label = svgElement("text", { x: scale.x(dayIndex, days.length), y: height - 10, "text-anchor": index === 0 ? "start" : index === ticks.length - 1 ? "end" : "middle", class: "chart-axis-label" });
       label.textContent = formatDate(days[dayIndex]);
       svg.appendChild(label);
-    }
+    });
   }
 
   // Each segment stays within its two observations; gaps remain gaps.
@@ -410,6 +443,7 @@
     const scale = chartScales(axis, dimensions);
     const svg = svgElement("svg", { viewBox: `0 0 ${width} ${height}`, role: "group", "aria-label": label });
     addAxes(svg, days, dimensions, scale, money);
+    let detailAction = null;
     const tooltip = document.createElement("div");
     tooltip.className = "chart-tooltip";
     tooltip.hidden = true;
@@ -421,6 +455,7 @@
     tooltip.setAttribute("role", "tooltip");
     const show = (index) => {
       const day = days[index];
+      if (detailAction) detailAction.textContent = `${day.isMonthly ? "Дни" : "Интервалы"}: ${formatDate(day)}`;
       inspectedIndex = index;
       container.dataset.inspectedDate = day.date;
       const x = scale.x(index, days.length);
@@ -484,10 +519,11 @@
     });
     const children = [svg, tooltip];
     if (money) {
-      const action = htmlElement("button", "chart-detail-action", "Подробнее по дню");
+      const action = htmlElement("button", "chart-detail-action");
       action.type = "button";
       action.dataset.chartAction = "detail";
-      if (days[0]?.isMonthly) action.textContent = "Подробнее по месяцу";
+      detailAction = action;
+      action.textContent = `${days[inspectedIndex]?.isMonthly ? "Дни" : "Интервалы"}: ${formatDate(days[inspectedIndex])}`;
       action.setAttribute("aria-controls", `${container.id}-detail`);
       action.addEventListener("click", () => { hide(); openDetail(days[inspectedIndex], series[0]); });
       children.push(action);
