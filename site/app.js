@@ -18,8 +18,9 @@
   let resizeTimer = null;
   let loadFailed = false;
 
-  function moscowDay(now) {
-    return new Date(now.getTime() + 3 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  function reportingDay(now) {
+    // Moscow is UTC+3; the reporting day starts at 01:00 local time.
+    return new Date(now.getTime() + (3 - 1) * 60 * 60 * 1000).toISOString().slice(0, 10);
   }
 
   function formatElapsed(timestamp, now = Date.now()) {
@@ -37,7 +38,7 @@
   }
 
   function selectDays(payload, period = activePeriod, now = new Date()) {
-    const today = moscowDay(now);
+    const today = reportingDay(now);
     const end = new Date(`${today}T12:00:00Z`);
     const byDate = new Map(payload.days.map((day) => [day.date, day]));
     if (period !== "year") {
@@ -81,7 +82,7 @@
 
   function pointStatus(day, key) {
     const labels = [];
-    if (day.isPartial) labels.push(day.isMonthly ? "текущий месяц" : "сегодня");
+    if (day.isPartial) labels.push(day.isMonthly ? "текущий месяц" : "текущий день");
     if (day.missing?.[key]) labels.push("неполные данные");
     return labels.length ? ` · ${labels.join(" · ")}` : "";
   }
@@ -295,7 +296,7 @@
     currentPayload = payload;
     renderFreshness();
     const days = selectDays(payload);
-    const today = payload.days.find((day) => day.date === moscowDay(new Date()));
+    const today = payload.days.find((day) => day.date === reportingDay(new Date()));
     PROFIT_SERIES.forEach((series) => {
       const values = days.map((day) => day.profits[series.key]).filter(Number.isFinite);
       byId(`${series.id}-profit`).textContent = formatMoney(values.length ? values.reduce((sum, value) => sum + value, 0) : null);
@@ -310,7 +311,7 @@
     renderLines(days, byId("online-chart"), [{ key: "max", label: "Максимум", color: "#ad8aff", value: (day) => day.online.max }, { key: "min", label: "Минимум", color: "#63baff", value: (day) => day.online.min }], "Онлайн Chiliad. Стрелки влево и вправо — значения.", false);
     renderTable("online-table", [activePeriod === "year" ? "Месяц" : "Дата", "Минимум", "Максимум"], days.map((day) => [formatDate(day), Number.isFinite(day.online.min) ? numberFormatter.format(day.online.min) : "—", Number.isFinite(day.online.max) ? numberFormatter.format(day.online.max) : "—"]));
     document.querySelectorAll(".period-dates").forEach((element) => { element.textContent = `${formatDate(days[0])} — ${formatDate(days[days.length - 1])}`; });
-    byId("gas-profit-table").dataset.day = moscowDay(new Date());
+    byId("gas-profit-table").dataset.day = reportingDay(new Date());
     if (chartFocus && focusedDate) {
       const points = [...chartFocus.querySelectorAll("[data-date]")];
       const restored = points.find((point) => point.dataset.date === focusedDate && point.dataset.series === focusedSeries) || points[0];
@@ -348,9 +349,9 @@
   window.setInterval(loadData, REFRESH_INTERVAL_MS);
   window.setInterval(() => {
     renderFreshness();
-    // Advance rolling windows if an open tab crosses midnight in Moscow.
-    if (currentPayload && byId("gas-profit-table").dataset.day !== moscowDay(new Date())) {
-      byId("gas-profit-table").dataset.day = moscowDay(new Date());
+    // Advance rolling windows at the 01:00 Moscow reporting cutoff.
+    if (currentPayload && byId("gas-profit-table").dataset.day !== reportingDay(new Date())) {
+      byId("gas-profit-table").dataset.day = reportingDay(new Date());
       render(currentPayload);
     }
   }, 60 * 1000);

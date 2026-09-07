@@ -16,7 +16,7 @@
     <title>Chiliad · Бизнесы</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="./styles.css?v=20260905">
-    <script src="./app.js?v=20260905" defer></script>
+    <script src="./app.js?v=20260907-reporting-day" defer></script>
   </head>
   <body>
     <header class="site-header">
@@ -40,7 +40,7 @@
             <p class="profit-total" id="gas-profit">—</p>
             <p class="period-caption">Прибыль за 7 дней</p>
           </header>
-          <div class="chart-meta"><span>Сегодня <strong id="gas-today">—</strong></span><span class="period-dates"></span></div>
+          <div class="chart-meta"><span>За день <strong id="gas-today">—</strong></span><span class="period-dates"></span></div>
           <div class="chart-shell" id="gas-profit-chart" aria-busy="true"><div class="chart-skeleton" aria-hidden="true"></div></div>
           <details class="data-details"><summary>Данные таблицей<span class="sr-only">: АЗС №6</span></summary><div class="table-scroll"><table id="gas-profit-table" aria-label="Прибыль: АЗС №6"></table></div></details>
         </article>
@@ -50,7 +50,7 @@
             <p class="profit-total" id="barbershop-profit">—</p>
             <p class="period-caption">Прибыль за 7 дней</p>
           </header>
-          <div class="chart-meta"><span>Сегодня <strong id="barbershop-today">—</strong></span><span class="period-dates"></span></div>
+          <div class="chart-meta"><span>За день <strong id="barbershop-today">—</strong></span><span class="period-dates"></span></div>
           <div class="chart-shell" id="barbershop-profit-chart" aria-busy="true"><div class="chart-skeleton" aria-hidden="true"></div></div>
           <details class="data-details"><summary>Данные таблицей<span class="sr-only">: Барбершоп №5</span></summary><div class="table-scroll"><table id="barbershop-profit-table" aria-label="Прибыль: Барбершоп №5"></table></div></details>
         </article>
@@ -60,12 +60,12 @@
             <p class="profit-total" id="store-profit">—</p>
             <p class="period-caption">Прибыль за 7 дней</p>
           </header>
-          <div class="chart-meta"><span>Сегодня <strong id="store-today">—</strong></span><span class="period-dates"></span></div>
+          <div class="chart-meta"><span>За день <strong id="store-today">—</strong></span><span class="period-dates"></span></div>
           <div class="chart-shell" id="store-profit-chart" aria-busy="true"><div class="chart-skeleton" aria-hidden="true"></div></div>
           <details class="data-details"><summary>Данные таблицей<span class="sr-only">: Магазин 24/7 №13</span></summary><div class="table-scroll"><table id="store-profit-table" aria-label="Прибыль: Магазин 24/7 №13"></table></div></details>
         </article>
         <article class="chart-card chart-card-online" aria-labelledby="online-title">
-          <header class="chart-header"><h2 id="online-title">Онлайн Chiliad</h2><p class="profit-total" id="online-range">—</p><p>Игроков сегодня · минимум — максимум</p></header>
+          <header class="chart-header"><h2 id="online-title">Онлайн Chiliad</h2><p class="profit-total" id="online-range">—</p><p>Игроков за день · минимум — максимум</p></header>
           <div class="chart-meta"><span class="legend"><span class="legend-max">Максимум</span><span class="legend-min">Минимум</span></span><span class="period-dates"></span></div>
           <div class="chart-shell" id="online-chart" aria-busy="true"><div class="chart-skeleton" aria-hidden="true"></div></div>
           <details class="data-details"><summary>Данные таблицей<span class="sr-only">: онлайн</span></summary><div class="table-scroll"><table id="online-table" aria-label="Онлайн Chiliad"></table></div></details>

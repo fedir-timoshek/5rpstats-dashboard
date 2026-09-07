@@ -241,7 +241,7 @@ def validate_site(site_directory: Path) -> dict[str, int]:
         'id="online-chart"',
         'id="global-message"',
         '<link rel="stylesheet" href="./styles.css?v=20260905">',
-        '<script src="./app.js?v=20260905" defer></script>',
+        '<script src="./app.js?v=20260907-reporting-day" defer></script>',
     )
     if any(fragment not in html for fragment in required_html_fragments):
         raise SiteValidationError("Pages HTML accessibility or security contract changed")
