@@ -2401,9 +2401,9 @@
       "date": "2026-09-12",
       "isPartial": true,
       "online": {
-        "max": 4056,
+        "max": 4073,
         "min": 668,
-        "samples": 40
+        "samples": 42
       },
       "profitIntervals": {
         "barbershop": [
@@ -2506,6 +2506,11 @@
             "from": "2026-09-12T16:17:33Z",
             "profit": 10063,
             "to": "2026-09-12T17:17:42Z"
+          },
+          {
+            "from": "2026-09-12T17:17:42Z",
+            "profit": 22425,
+            "to": "2026-09-12T18:17:36Z"
           }
         ],
         "gas": [
@@ -2608,34 +2613,39 @@
             "from": "2026-09-12T16:17:29Z",
             "profit": 19248,
             "to": "2026-09-12T17:17:37Z"
+          },
+          {
+            "from": "2026-09-12T17:17:37Z",
+            "profit": 25762,
+            "to": "2026-09-12T18:17:32Z"
           }
         ],
         "store13": []
       },
       "profitSamples": {
-        "barbershop": 20,
-        "gas": 20,
+        "barbershop": 21,
+        "gas": 21,
         "store13": 0
       },
       "profits": {
-        "barbershop": 144156,
-        "gas": 335796,
+        "barbershop": 166581,
+        "gas": 361558,
         "store13": null
       }
     }
   ],
-  "generatedAt": "2026-09-12T17:17:57.221119Z",
+  "generatedAt": "2026-09-12T18:17:54.771680Z",
   "schemaVersion": 2,
   "sourceStatus": {
     "barbershop": {
-      "lastObservedAt": "2026-09-12T17:17:42Z",
-      "observations": 175,
-      "profitSamples": 174
+      "lastObservedAt": "2026-09-12T18:17:36Z",
+      "observations": 176,
+      "profitSamples": 175
     },
     "gas": {
-      "lastObservedAt": "2026-09-12T17:17:37Z",
-      "observations": 184,
-      "profitSamples": 183
+      "lastObservedAt": "2026-09-12T18:17:32Z",
+      "observations": 185,
+      "profitSamples": 184
     },
     "store13": {
       "lastObservedAt": "2026-09-09T21:17:41Z",
