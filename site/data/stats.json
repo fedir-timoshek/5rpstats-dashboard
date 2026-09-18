@@ -4495,7 +4495,7 @@
     },
     {
       "date": "2026-09-18",
-      "isPartial": true,
+      "isPartial": false,
       "online": {
         "max": 3456,
         "min": 100,
@@ -4879,25 +4879,67 @@
         "gas": 356176,
         "store13": 59872
       }
+    },
+    {
+      "date": "2026-09-19",
+      "isPartial": true,
+      "online": {
+        "max": 2557,
+        "min": 2557,
+        "samples": 3
+      },
+      "profitIntervals": {
+        "barbershop": [
+          {
+            "from": "2026-09-18T21:17:38Z",
+            "profit": 0,
+            "to": "2026-09-18T22:17:38Z"
+          }
+        ],
+        "gas": [
+          {
+            "from": "2026-09-18T21:17:33Z",
+            "profit": 13447,
+            "to": "2026-09-18T22:17:33Z"
+          }
+        ],
+        "store13": [
+          {
+            "from": "2026-09-18T21:17:42Z",
+            "profit": 2398,
+            "to": "2026-09-18T22:17:44Z"
+          }
+        ]
+      },
+      "profitSamples": {
+        "barbershop": 1,
+        "gas": 1,
+        "store13": 1
+      },
+      "profits": {
+        "barbershop": 0,
+        "gas": 13447,
+        "store13": 2398
+      }
     }
   ],
-  "generatedAt": "2026-09-18T21:17:53.448168Z",
+  "generatedAt": "2026-09-18T22:17:57.857583Z",
   "schemaVersion": 2,
   "sourceStatus": {
     "barbershop": {
-      "lastObservedAt": "2026-09-18T21:17:38Z",
-      "observations": 322,
-      "profitSamples": 321
+      "lastObservedAt": "2026-09-18T22:17:38Z",
+      "observations": 323,
+      "profitSamples": 322
     },
     "gas": {
-      "lastObservedAt": "2026-09-18T21:17:33Z",
-      "observations": 331,
-      "profitSamples": 330
+      "lastObservedAt": "2026-09-18T22:17:33Z",
+      "observations": 332,
+      "profitSamples": 331
     },
     "store13": {
-      "lastObservedAt": "2026-09-18T21:17:42Z",
-      "observations": 224,
-      "profitSamples": 223
+      "lastObservedAt": "2026-09-18T22:17:44Z",
+      "observations": 225,
+      "profitSamples": 224
     }
   },
   "timezoneLabel": "Europe/Moscow (UTC+3)"
