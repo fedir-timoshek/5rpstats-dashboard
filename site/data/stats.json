@@ -7797,7 +7797,7 @@
     },
     {
       "date": "2026-09-27",
-      "isPartial": true,
+      "isPartial": false,
       "online": {
         "max": 3216,
         "min": 383,
@@ -8153,7 +8153,7 @@
       }
     }
   ],
-  "generatedAt": "2026-09-27T21:18:38.723371Z",
+  "generatedAt": "2026-09-27T22:18:34.667145Z",
   "schemaVersion": 2,
   "sourceStatus": {
     "barbershop": {
