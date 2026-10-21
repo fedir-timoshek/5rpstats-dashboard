@@ -10658,9 +10658,9 @@
       "date": "2026-10-21",
       "isPartial": true,
       "online": {
-        "max": 1990,
+        "max": 2190,
         "min": 446,
-        "samples": 45
+        "samples": 48
       },
       "profitIntervals": {
         "barbershop": [
@@ -10738,6 +10738,11 @@
             "from": "2026-10-21T11:18:19Z",
             "profit": 3444,
             "to": "2026-10-21T12:18:18Z"
+          },
+          {
+            "from": "2026-10-21T12:18:18Z",
+            "profit": 3998,
+            "to": "2026-10-21T13:18:12Z"
           }
         ],
         "gas": [
@@ -10815,6 +10820,11 @@
             "from": "2026-10-21T11:18:14Z",
             "profit": 14394,
             "to": "2026-10-21T12:18:13Z"
+          },
+          {
+            "from": "2026-10-21T12:18:13Z",
+            "profit": 20284,
+            "to": "2026-10-21T13:18:08Z"
           }
         ],
         "store13": [
@@ -10892,38 +10902,43 @@
             "from": "2026-10-21T11:18:25Z",
             "profit": 2340,
             "to": "2026-10-21T12:18:23Z"
+          },
+          {
+            "from": "2026-10-21T12:18:23Z",
+            "profit": 535,
+            "to": "2026-10-21T13:18:16Z"
           }
         ]
       },
       "profitSamples": {
-        "barbershop": 15,
-        "gas": 15,
-        "store13": 15
+        "barbershop": 16,
+        "gas": 16,
+        "store13": 16
       },
       "profits": {
-        "barbershop": 44325,
-        "gas": 97502,
-        "store13": 9438
+        "barbershop": 48323,
+        "gas": 117786,
+        "store13": 9973
       }
     }
   ],
-  "generatedAt": "2026-10-21T12:18:34.366300Z",
+  "generatedAt": "2026-10-21T13:18:29.038642Z",
   "schemaVersion": 2,
   "sourceStatus": {
     "barbershop": {
-      "lastObservedAt": "2026-10-21T12:18:18Z",
-      "observations": 1011,
-      "profitSamples": 1010
+      "lastObservedAt": "2026-10-21T13:18:12Z",
+      "observations": 1012,
+      "profitSamples": 1011
     },
     "gas": {
-      "lastObservedAt": "2026-10-21T12:18:13Z",
-      "observations": 1050,
-      "profitSamples": 1049
+      "lastObservedAt": "2026-10-21T13:18:08Z",
+      "observations": 1051,
+      "profitSamples": 1050
     },
     "store13": {
-      "lastObservedAt": "2026-10-21T12:18:23Z",
-      "observations": 947,
-      "profitSamples": 946
+      "lastObservedAt": "2026-10-21T13:18:16Z",
+      "observations": 948,
+      "profitSamples": 947
     }
   },
   "timezoneLabel": "Europe/Moscow (UTC+3)"
