@@ -11316,7 +11316,7 @@
     },
     {
       "date": "2026-11-06",
-      "isPartial": true,
+      "isPartial": false,
       "online": {
         "max": 2431,
         "min": 333,
@@ -11700,25 +11700,67 @@
         "gas": 298993,
         "store13": 47069
       }
+    },
+    {
+      "date": "2026-11-07",
+      "isPartial": true,
+      "online": {
+        "max": 1632,
+        "min": 1632,
+        "samples": 3
+      },
+      "profitIntervals": {
+        "barbershop": [
+          {
+            "from": "2026-11-06T21:18:30Z",
+            "profit": 1695,
+            "to": "2026-11-06T22:18:29Z"
+          }
+        ],
+        "gas": [
+          {
+            "from": "2026-11-06T21:18:26Z",
+            "profit": 13838,
+            "to": "2026-11-06T22:18:24Z"
+          }
+        ],
+        "store13": [
+          {
+            "from": "2026-11-06T21:18:34Z",
+            "profit": 2312,
+            "to": "2026-11-06T22:18:34Z"
+          }
+        ]
+      },
+      "profitSamples": {
+        "barbershop": 1,
+        "gas": 1,
+        "store13": 1
+      },
+      "profits": {
+        "barbershop": 1695,
+        "gas": 13838,
+        "store13": 2312
+      }
     }
   ],
-  "generatedAt": "2026-11-06T21:18:48.062488Z",
+  "generatedAt": "2026-11-06T22:18:47.328847Z",
   "schemaVersion": 2,
   "sourceStatus": {
     "barbershop": {
-      "lastObservedAt": "2026-11-06T21:18:30Z",
-      "observations": 1397,
-      "profitSamples": 1396
+      "lastObservedAt": "2026-11-06T22:18:29Z",
+      "observations": 1398,
+      "profitSamples": 1397
     },
     "gas": {
-      "lastObservedAt": "2026-11-06T21:18:26Z",
-      "observations": 1434,
-      "profitSamples": 1433
+      "lastObservedAt": "2026-11-06T22:18:24Z",
+      "observations": 1435,
+      "profitSamples": 1434
     },
     "store13": {
-      "lastObservedAt": "2026-11-06T21:18:34Z",
-      "observations": 1333,
-      "profitSamples": 1332
+      "lastObservedAt": "2026-11-06T22:18:34Z",
+      "observations": 1334,
+      "profitSamples": 1333
     }
   },
   "timezoneLabel": "Europe/Moscow (UTC+3)"
