@@ -11978,9 +11978,9 @@
       "date": "2026-11-09",
       "isPartial": true,
       "online": {
-        "max": 1793,
+        "max": 1981,
         "min": 374,
-        "samples": 34
+        "samples": 36
       },
       "profitIntervals": {
         "barbershop": [
@@ -12068,6 +12068,11 @@
             "from": "2026-11-09T13:18:17Z",
             "profit": 475,
             "to": "2026-11-09T14:18:13Z"
+          },
+          {
+            "from": "2026-11-09T14:18:13Z",
+            "profit": 3375,
+            "to": "2026-11-09T15:18:06Z"
           }
         ],
         "gas": [],
@@ -12156,28 +12161,33 @@
             "from": "2026-11-09T13:18:22Z",
             "profit": 60203,
             "to": "2026-11-09T14:18:19Z"
+          },
+          {
+            "from": "2026-11-09T14:18:19Z",
+            "profit": 10367,
+            "to": "2026-11-09T15:18:10Z"
           }
         ]
       },
       "profitSamples": {
-        "barbershop": 17,
+        "barbershop": 18,
         "gas": 0,
-        "store13": 17
+        "store13": 18
       },
       "profits": {
-        "barbershop": 50210,
+        "barbershop": 53585,
         "gas": null,
-        "store13": 79904
+        "store13": 90271
       }
     }
   ],
-  "generatedAt": "2026-11-09T14:18:34.017463Z",
+  "generatedAt": "2026-11-09T15:18:26.238715Z",
   "schemaVersion": 2,
   "sourceStatus": {
     "barbershop": {
-      "lastObservedAt": "2026-11-09T14:18:13Z",
-      "observations": 1460,
-      "profitSamples": 1459
+      "lastObservedAt": "2026-11-09T15:18:06Z",
+      "observations": 1461,
+      "profitSamples": 1460
     },
     "gas": {
       "lastObservedAt": "2026-11-08T15:17:51Z",
@@ -12185,9 +12195,9 @@
       "profitSamples": 1473
     },
     "store13": {
-      "lastObservedAt": "2026-11-09T14:18:19Z",
-      "observations": 1396,
-      "profitSamples": 1395
+      "lastObservedAt": "2026-11-09T15:18:10Z",
+      "observations": 1397,
+      "profitSamples": 1396
     }
   },
   "timezoneLabel": "Europe/Moscow (UTC+3)"
