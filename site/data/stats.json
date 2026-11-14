@@ -11498,9 +11498,9 @@
       "date": "2026-11-14",
       "isPartial": true,
       "online": {
-        "max": 1428,
+        "max": 1527,
         "min": 349,
-        "samples": 26
+        "samples": 28
       },
       "profitIntervals": {
         "barbershop": [
@@ -11568,6 +11568,11 @@
             "from": "2026-11-14T09:18:29Z",
             "profit": 825,
             "to": "2026-11-14T10:18:36Z"
+          },
+          {
+            "from": "2026-11-14T10:18:36Z",
+            "profit": 16404,
+            "to": "2026-11-14T11:18:36Z"
           }
         ],
         "gas": [],
@@ -11636,28 +11641,33 @@
             "from": "2026-11-14T09:18:34Z",
             "profit": 1030,
             "to": "2026-11-14T10:18:41Z"
+          },
+          {
+            "from": "2026-11-14T10:18:41Z",
+            "profit": 925,
+            "to": "2026-11-14T11:18:42Z"
           }
         ]
       },
       "profitSamples": {
-        "barbershop": 13,
+        "barbershop": 14,
         "gas": 0,
-        "store13": 13
+        "store13": 14
       },
       "profits": {
-        "barbershop": -6927805,
+        "barbershop": -6911401,
         "gas": null,
-        "store13": 13155
+        "store13": 14080
       }
     }
   ],
-  "generatedAt": "2026-11-14T10:18:53.421613Z",
+  "generatedAt": "2026-11-14T11:18:55.013530Z",
   "schemaVersion": 2,
   "sourceStatus": {
     "barbershop": {
-      "lastObservedAt": "2026-11-14T10:18:36Z",
-      "observations": 1575,
-      "profitSamples": 1574
+      "lastObservedAt": "2026-11-14T11:18:36Z",
+      "observations": 1576,
+      "profitSamples": 1575
     },
     "gas": {
       "lastObservedAt": "2026-11-08T15:17:51Z",
@@ -11665,9 +11675,9 @@
       "profitSamples": 1473
     },
     "store13": {
-      "lastObservedAt": "2026-11-14T10:18:41Z",
-      "observations": 1511,
-      "profitSamples": 1510
+      "lastObservedAt": "2026-11-14T11:18:42Z",
+      "observations": 1512,
+      "profitSamples": 1511
     }
   },
   "timezoneLabel": "Europe/Moscow (UTC+3)"
