@@ -11498,9 +11498,9 @@
       "date": "2026-11-14",
       "isPartial": true,
       "online": {
-        "max": 1527,
+        "max": 1747,
         "min": 349,
-        "samples": 28
+        "samples": 30
       },
       "profitIntervals": {
         "barbershop": [
@@ -11573,6 +11573,11 @@
             "from": "2026-11-14T10:18:36Z",
             "profit": 16404,
             "to": "2026-11-14T11:18:36Z"
+          },
+          {
+            "from": "2026-11-14T11:18:36Z",
+            "profit": 5802,
+            "to": "2026-11-14T12:18:29Z"
           }
         ],
         "gas": [],
@@ -11646,28 +11651,33 @@
             "from": "2026-11-14T10:18:41Z",
             "profit": 925,
             "to": "2026-11-14T11:18:42Z"
+          },
+          {
+            "from": "2026-11-14T11:18:42Z",
+            "profit": 5780,
+            "to": "2026-11-14T12:18:34Z"
           }
         ]
       },
       "profitSamples": {
-        "barbershop": 14,
+        "barbershop": 15,
         "gas": 0,
-        "store13": 14
+        "store13": 15
       },
       "profits": {
-        "barbershop": -6911401,
+        "barbershop": -6905599,
         "gas": null,
-        "store13": 14080
+        "store13": 19860
       }
     }
   ],
-  "generatedAt": "2026-11-14T11:18:55.013530Z",
+  "generatedAt": "2026-11-14T12:18:46.736152Z",
   "schemaVersion": 2,
   "sourceStatus": {
     "barbershop": {
-      "lastObservedAt": "2026-11-14T11:18:36Z",
-      "observations": 1576,
-      "profitSamples": 1575
+      "lastObservedAt": "2026-11-14T12:18:29Z",
+      "observations": 1577,
+      "profitSamples": 1576
     },
     "gas": {
       "lastObservedAt": "2026-11-08T15:17:51Z",
@@ -11675,9 +11685,9 @@
       "profitSamples": 1473
     },
     "store13": {
-      "lastObservedAt": "2026-11-14T11:18:42Z",
-      "observations": 1512,
-      "profitSamples": 1511
+      "lastObservedAt": "2026-11-14T12:18:34Z",
+      "observations": 1513,
+      "profitSamples": 1512
     }
   },
   "timezoneLabel": "Europe/Moscow (UTC+3)"
