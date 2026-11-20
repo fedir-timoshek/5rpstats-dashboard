@@ -10926,9 +10926,9 @@
       "date": "2026-11-20",
       "isPartial": true,
       "online": {
-        "max": 1172,
+        "max": 1270,
         "min": 347,
-        "samples": 26
+        "samples": 28
       },
       "profitIntervals": {
         "barbershop": [
@@ -10996,6 +10996,11 @@
             "from": "2026-11-20T09:18:03Z",
             "profit": 6900,
             "to": "2026-11-20T10:18:17Z"
+          },
+          {
+            "from": "2026-11-20T10:18:17Z",
+            "profit": 4025,
+            "to": "2026-11-20T11:18:14Z"
           }
         ],
         "gas": [],
@@ -11064,28 +11069,33 @@
             "from": "2026-11-20T09:18:07Z",
             "profit": 16810,
             "to": "2026-11-20T10:18:20Z"
+          },
+          {
+            "from": "2026-11-20T10:18:20Z",
+            "profit": -5960,
+            "to": "2026-11-20T11:18:19Z"
           }
         ]
       },
       "profitSamples": {
-        "barbershop": 13,
+        "barbershop": 14,
         "gas": 0,
-        "store13": 13
+        "store13": 14
       },
       "profits": {
-        "barbershop": 32319,
+        "barbershop": 36344,
         "gas": null,
-        "store13": 21410
+        "store13": 15450
       }
     }
   ],
-  "generatedAt": "2026-11-20T10:18:33.406931Z",
+  "generatedAt": "2026-11-20T11:18:32.617226Z",
   "schemaVersion": 2,
   "sourceStatus": {
     "barbershop": {
-      "lastObservedAt": "2026-11-20T10:18:17Z",
-      "observations": 1719,
-      "profitSamples": 1718
+      "lastObservedAt": "2026-11-20T11:18:14Z",
+      "observations": 1720,
+      "profitSamples": 1719
     },
     "gas": {
       "lastObservedAt": "2026-11-08T15:17:51Z",
@@ -11093,9 +11103,9 @@
       "profitSamples": 1473
     },
     "store13": {
-      "lastObservedAt": "2026-11-20T10:18:20Z",
-      "observations": 1655,
-      "profitSamples": 1654
+      "lastObservedAt": "2026-11-20T11:18:19Z",
+      "observations": 1656,
+      "profitSamples": 1655
     }
   },
   "timezoneLabel": "Europe/Moscow (UTC+3)"
